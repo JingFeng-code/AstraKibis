@@ -12,6 +12,14 @@ runs:
         node-version: 22
         cache: pnpm
 
+    - name: Resolve candidate lockfile (temporary development step)
+      shell: bash
+      run: |
+        pnpm install --lockfile-only --no-frozen-lockfile
+        echo KIBIS_LOCK_DIFF_BEGIN
+        git diff -- pnpm-lock.yaml
+        echo KIBIS_LOCK_DIFF_END
+
     - name: Install
       shell: bash
       run: pnpm install --frozen-lockfile
