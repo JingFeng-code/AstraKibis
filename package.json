@@ -1,5 +1,5 @@
 {
-  "name": "freebie-radar",
+  "name": "astra-kibis",
   "version": "1.1.14",
   "private": true,
   "type": "module",
@@ -50,5 +50,6 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ]
-  }
+  },
+  "description": "A lightweight Taiwan-first self-hosted resource journal"
 }

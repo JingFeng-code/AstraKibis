@@ -206,7 +206,7 @@ const PRESETS: Preset[] = [...PRIMARY_CHANNELS, ...SECONDARY_VIEWS];
 
 
 // 主仓库地址：顶栏 GitHub 图标跳这里
-const REPO_URL = "https://github.com/ZiChuanLan/freebie-radar";
+const REPO_URL = "https://github.com/JingFeng-code/AstraKibis";
 // 移动端顶栏图标按钮统一尺寸，5 个并排也不挤
 const ICON_BTN =
   "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-ink-200 bg-surface text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950";
@@ -905,9 +905,12 @@ export function App() {
       <aside className="workspace-rail w-full shrink-0 border-b border-ink-200 bg-canvas/70 px-3.5 py-3 lg:flex lg:w-[240px] lg:flex-col lg:gap-4 lg:border-r lg:border-b-0 lg:bg-canvas lg:px-3 lg:py-4">
         {/* 品牌行：说明/RSS/GitHub/导出/刷新 全部收进这一行，省掉整条第二栏 */}
         <div className="flex items-center justify-between gap-2 px-1">
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent-solid" aria-hidden="true" />
-            <h1 className="shrink-0 whitespace-nowrap text-[14px] font-semibold tracking-tight text-ink-950">{t("资源雷达")}</h1>
+          <div className="kibis-identity">
+            <img src="/favicon.svg" alt="" className="kibis-mark" width="34" height="34" />
+            <div className="min-w-0">
+              <h1 className="kibis-wordmark text-ink-950">AstraKibis</h1>
+              <p className="kibis-tagline whitespace-nowrap">{t("每日收集小宝藏")}</p>
+            </div>
           </div>
           <span className="hidden font-mono text-[11px] tabular-nums text-ink-400 lg:inline">
             {stats.data?.totals.aiKept ?? "—"} {t("精选")}
@@ -1177,6 +1180,10 @@ export function App() {
 
           {tab === "feed" && (
             <>
+              <section className="kibis-intro" aria-label={t("资源探索")}>
+                <div><h2>{t("今天发现什么？")}</h2><p>{t("探索台湾与全球的免费资源、开源工具和科技资讯。领取前请核对地区限制、费用与来源。")}</p></div>
+                <img src="/favicon.svg" className="kibis-stamp" alt="" width="48" height="48" />
+              </section>
               {firstVisitNotice && bootData && <section className="first-visit-notice" aria-label={t("站点公告")}>
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent-solid" aria-hidden="true" />
                 <h2 className="min-w-0 flex-1 truncate text-[12px] font-semibold text-ink-700">{t(bootData.onboarding.title)}</h2>
