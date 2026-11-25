@@ -353,4 +353,5 @@ export const EN_APP: Record<string, string> = {
   "资源探索": "Discover resources",
   "今天发现什么？": "What will you discover today?",
   "探索台湾与全球的免费资源、开源工具和科技资讯。领取前请核对地区限制、费用与来源。": "Discover free resources, open-source tools and tech news from Taiwan and around the world. Check eligibility, fees and original sources before claiming.",
+  "免費資源及優惠（含未審核）": "Free resources and deals (including unreviewed items)",
 };

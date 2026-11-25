@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Flame, Loader2, Newspaper, Radar, RefreshCw, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { KIND_LABEL, categoryLabelForKind, timeAgo } from "../lib/sources.ts";
 import type { HotReport, HotScope } from "../types.ts";
-import { t } from "../lib/i18n.ts";
+import { t, uiMessage } from "../lib/i18n.ts";
 
 const WINDOWS = [
   { hours: 24, label: t("24 小时") },
@@ -145,7 +145,7 @@ export function HotPanel({
               },
               { label: t("上一窗口"), value: report.prevScanned, note: t("同长度对比") },
               { label: t("热词数"), value: report.words.length, note: t("已过滤虚词") },
-              { label: t("最值得抢"), value: report.top.length, note: t("仅真福利与特价好价") },
+              { label: t("最值得抢"), value: report.top.length, note: t("免費資源及優惠（含未審核）") },
             ].map((m) => (
               <div key={m.label}>
                 <div className="text-[12px] text-ink-500">{m.label}</div>
@@ -171,12 +171,12 @@ export function HotPanel({
                   const hot = w.delta >= 2;
                   return (
                     <button
-                      key={w.w}
+                      key={uiMessage(w.w)}
                       type="button"
                       onMouseEnter={() => setHovered(w.w)}
                       onMouseLeave={() => setHovered(null)}
                       onClick={() => onSearchWord(w.w)}
-                      title={t("{w}：本窗口 {n} 次，上一窗口 {prev} 次（点击搜索）", { w: w.w, n: w.n, prev: w.prev })}
+                      title={t("{w}：本窗口 {n} 次，上一窗口 {prev} 次（点击搜索）", { w: uiMessage(w.w), n: w.n, prev: w.prev })}
                       className={
                         "rounded px-1.5 py-0.5 transition-all duration-150 hover:-translate-y-0.5 active:scale-95 " +
                         (hovered === w.w
