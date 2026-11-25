@@ -1,6 +1,7 @@
 import { config } from "./config.ts";
 import { discoverySourceFilter } from "./source-visibility.ts";
 import { temporalSourceFilter } from "./source-quality-policy.ts";
+import { assessResource } from "../shared/resource-quality.ts";
 import { all, get, run } from "./db.ts";
 import { CATEGORY_LABEL, dedupeByTitle, KIND_LABEL, type ContentKind, type DedupeEntry } from "./enrich/index.ts";
 import { hasValueSignal, isNoiseTitle } from "./enrich/noise.ts";
@@ -10,6 +11,7 @@ import { sendTelegram } from "./telegram.ts";
 import { buildHotReport } from "./hot.ts";
 export { sendTelegram };
 export type DigestItem = {
+  summary?: string | null;
   id: number;
   source_id: string;
   title: string;
@@ -72,7 +74,7 @@ export function pickDaily(date = new Date(), topN = config.dailyTopN): DigestIte
   const visibility = discoverySourceFilter();
   const temporal = temporalSourceFilter();
   const rows = all<DigestItem>(
-    `SELECT id, source_id, title, url, url_key AS urlKey, category, kind, score, expires_at, published_at, price, is_free, obtain, ai, codes FROM items WHERE status = 'active' AND ${visibility.sql} AND ${temporal.sql} AND COALESCE(published_at, first_seen_at) >= ? AND (expires_at IS NULL OR expires_at > ?) ORDER BY score DESC, COALESCE(published_at, first_seen_at) DESC LIMIT 400`,
+    `SELECT id, source_id, title, SUBSTR(summary,1,1200) AS summary, url, url_key AS urlKey, category, kind, score, expires_at, published_at, price, is_free, obtain, ai, codes FROM items WHERE status = 'active' AND ${visibility.sql} AND ${temporal.sql} AND COALESCE(published_at, first_seen_at) >= ? AND (expires_at IS NULL OR expires_at > ?) ORDER BY score DESC, COALESCE(published_at, first_seen_at) DESC LIMIT 400`,
     ...visibility.params,
     ...temporal.params,
     lookback,
@@ -84,6 +86,7 @@ export function pickDaily(date = new Date(), topN = config.dailyTopN): DigestIte
   const settings = getPushSettings();
   const aiKeepMap = new Map<number, boolean | null>();
   const fresh = rows.filter((r) => {
+    if (config.sourceProfile === "taiwan" && assessResource(r.title,r.summary,r.kind).region === "restricted_elsewhere" && (r.kind === "freebie" || r.kind === "deal")) return false;
     if (pushed.ids.has(r.id) || isBlocked(r, rules)) return false;
     let codes: string[] = [];
     try { codes = JSON.parse(r.codes ?? '[]') as string[]; } catch { codes = []; }
@@ -237,7 +240,7 @@ export function pickWeekly(date = new Date(), topN = 20): DigestItem[] {
   const visibility = discoverySourceFilter();
   const temporal = temporalSourceFilter();
   const rows = all<DigestItem>(
-    `SELECT id, source_id, title, url, url_key AS urlKey, category, kind, score, expires_at, published_at,
+    `SELECT id, source_id, title, SUBSTR(summary,1,1200) AS summary, url, url_key AS urlKey, category, kind, score, expires_at, published_at,
             price, is_free, obtain, ai, codes, ai_quality
        FROM items
       WHERE status = 'active'
@@ -257,6 +260,7 @@ export function pickWeekly(date = new Date(), topN = 20): DigestItem[] {
   const rules = loadActiveBlockRules();
   const settings = getPushSettings();
   const usable = rows.filter((r) => {
+    if (config.sourceProfile === "taiwan" && assessResource(r.title,r.summary,r.kind).region === "restricted_elsewhere" && (r.kind === "freebie" || r.kind === "deal")) return false;
     if (isBlocked(r, rules)) return false;
     if (settings.applyToDigest) {
       let codes: string[] = [];

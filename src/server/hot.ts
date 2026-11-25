@@ -2,6 +2,8 @@ import { all, get, dbRevision } from "./db.ts";
 import { TitleDeduper } from "./enrich/dedup.ts";
 import { discoverySourceFilter } from "./source-visibility.ts";
 import { temporalSourceFilter } from "./source-quality-policy.ts";
+import { config } from "./config.ts";
+import { assessResource } from "../shared/resource-quality.ts";
 
 /** 通用虚词 + 福利域里的「无信息量」词：这类词每条标题都有，进词云只会淹没真正的热点 */
 const CJK_STOP = new Set(
@@ -97,6 +99,7 @@ export type HotReport = {
 };
 
 type Row = {
+  summary?: string | null;
   id: number;
   title: string;
   url: string;
@@ -166,6 +169,18 @@ function clusterDedupe(rows: Row[]): Array<{ row: Row; count: number }> {
   return [...groups.values()];
 }
 
+/** Only the recommendation slots are capped; trend counts remain real counts. */
+function capRecommendations<T extends { row: Row }>(rows: T[]): T[] {
+  if (config.sourceProfile !== "taiwan") return rows;
+  const seen = new Map<string,number>();
+  return rows.filter(({row}) => {
+    const count = seen.get(row.source_id) ?? 0;
+    if (count >= 2) return false;
+    seen.set(row.source_id,count+1);
+    return true;
+  });
+}
+
 const cache = new Map<string, HotReport>();
 
 export function buildHotReport(windowHours = 24, rawScope?: string): HotReport {
@@ -183,7 +198,7 @@ export function buildHotReport(windowHours = 24, rawScope?: string): HotReport {
   const visibility = discoverySourceFilter();
   const temporal = temporalSourceFilter();
   const rows = all<Row>(
-    `SELECT id, title, url, url_key AS urlKey, source_id, category, kind, obtain, codes,
+    `SELECT id, title, SUBSTR(summary,1,1200) AS summary, url, url_key AS urlKey, source_id, category, kind, obtain, codes,
             score, ai_quality, ai_keep, published_at, first_seen_at,
             COALESCE(published_at, first_seen_at) AS publishedAt
        FROM items
@@ -245,16 +260,17 @@ export function buildHotReport(windowHours = 24, rawScope?: string): HotReport {
     if (k !== "freebie" && k !== "deal") return false;
     if (r.category === "trade" || r.category === "carpool" || r.category === "pan" || r.category === "course") return false;
     if (r.obtain === "promo") return false;
+    if (config.sourceProfile === "taiwan" && assessResource(r.title,r.summary,r.kind).region === "restricted_elsewhere") return false;
     return true;
   });
-  const top = clusterDedupe(dealCandidates)
+  const top = capRecommendations(clusterDedupe(dealCandidates)
     .sort(
       (a, b) =>
         (b.row.ai_quality ?? 0) - (a.row.ai_quality ?? 0) ||
         (b.row.kind === "freebie" ? 1 : 0) - (a.row.kind === "freebie" ? 1 : 0) ||
         b.row.score - a.row.score ||
         (b.row.published_at ?? b.row.first_seen_at).localeCompare(a.row.published_at ?? a.row.first_seen_at),
-    )
+    ))
     .slice(0, TOP_ITEMS)
     .map(({ row: r, count }) => ({
       id: r.id,
@@ -276,14 +292,14 @@ export function buildHotReport(windowHours = 24, rawScope?: string): HotReport {
     if (scope === "info") return k === "info" || k === "opensource";
     return k === "news" || k === "info" || k === "opensource";
   });
-  const topNews = clusterDedupe(newsCandidates)
+  const topNews = capRecommendations(clusterDedupe(newsCandidates)
     .sort(
       (a, b) =>
         (b.row.kind === "news" ? 1 : 0) - (a.row.kind === "news" ? 1 : 0) ||
         (b.row.ai_quality ?? 0) - (a.row.ai_quality ?? 0) ||
         b.row.score - a.row.score ||
         (b.row.published_at ?? b.row.first_seen_at).localeCompare(a.row.published_at ?? a.row.first_seen_at),
-    )
+    ))
     .slice(0, TOP_ITEMS)
     .map(({ row: r, count }) => ({
       id: r.id,

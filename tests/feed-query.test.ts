@@ -26,7 +26,7 @@ after(() => closeDb?.());
 for (const preset of ["verified", "offline", "pan", "deal", "opensource", "news", "info", "codes", "urgent", "starred", "hidden", "all"]) {
   test(`feed query uses shared policy: ${preset}`, () => {
     const actual = Object.fromEntries(new URLSearchParams(buildFeedQuery(state({ preset }), now)));
-    const expected = applyChannelQuery({ preset, sort: "newest", limit: "100" });
+    const expected = applyChannelQuery({ preset, sort: DEFAULT_FEED_STATE.sort, limit: "100" });
     assert.deepEqual(actual, expected);
   });
 }

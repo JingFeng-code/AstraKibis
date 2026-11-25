@@ -502,7 +502,7 @@ export function App() {
     setPriceCap("auto");
     setObtain("auto");
     setRange("auto");
-    setSort("newest");
+    setSort(DEFAULT_FEED_STATE.sort);
     setQuality({freeType:"all",regionHint:"all",billingRisk:"all",cardRequirement:"all",resourceNature:"all"});
   }, []);
   const removeFilter = useCallback((key: FilterKey, value?: string) => {
@@ -1374,17 +1374,17 @@ export function App() {
                         value={priceCap}
                         onChange={(e) => setPriceCap(e.target.value)}
                         className="h-7 rounded-md border border-transparent bg-canvas px-2 text-[12px] font-medium text-ink-600 outline-none hover:bg-canvas-subtle hover:text-ink-900 focus:border-accent"
-                        title={t("价格上限")}
+                        title={t("價格上限（人民幣估算）")}
                       >
                         <option value="auto">
-                          {t("价格：不限")}
+                          {t("價格：不限（人民幣估算）")}
                         </option>
-                        <option value="all">{t("价格：不限")}</option>
-                        <option value="free">{t("仅白嫖 (0 元)")}</option>
-                        <option value="5">{t("≤ 5 元")}</option>
-                        <option value="10">{t("≤ 10 元")}</option>
-                        <option value="30">{t("≤ 30 元")}</option>
-                        <option value="100">{t("≤ 100 元")}</option>
+                        <option value="all">{t("價格：不限（人民幣估算）")}</option>
+                        <option value="free">{t("免費宣稱（未查證）")}</option>
+                        <option value="5">{t("≤ {n} 人民幣", { n: 5 })}</option>
+                        <option value="10">{t("≤ {n} 人民幣", { n: 10 })}</option>
+                        <option value="30">{t("≤ {n} 人民幣", { n: 30 })}</option>
+                        <option value="100">{t("≤ {n} 人民幣", { n: 100 })}</option>
                       </select>
 
                       {advancedFilters && <select

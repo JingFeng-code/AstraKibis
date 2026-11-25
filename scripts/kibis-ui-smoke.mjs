@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { createServer } from "node:net";
 import { once } from "node:events";
 import assert from "node:assert/strict";
+import { DatabaseSync } from "node:sqlite";
 
 const temp = await mkdtemp(join(tmpdir(), "kibis-browser-"));
 const socket = createServer();
@@ -30,6 +31,10 @@ try {
     await new Promise(r => setTimeout(r,100));
   }
   assert.ok(healthy, "local server must start: " + logs);
+  const fixture = new DatabaseSync(join(temp,"radar.db"));
+  const now = new Date().toISOString();
+  fixture.prepare("INSERT INTO items (source_id,external_id,url,url_key,title,title_key,category,kind,score,status,is_free,obtain,first_seen_at,last_seen_at,published_at) VALUES (?,?,?,?,?,?,?,?,?,'active',1,'free',?,?,?)").run("rss-freegroup","ui-quality","https://example.com/kibis-ui-quality","example/kibis-ui-quality","長期免費 VPS，台灣可申請，需綁卡，超額可能收費","kibis-ui-quality","vps","freebie",80,now,now,now);
+  fixture.close();
   browser = await chromium.launch({headless:true});
   const page = await browser.newPage({viewport:{width:1440,height:900},colorScheme:"light"});
   const errors = [];
@@ -47,6 +52,14 @@ try {
   assert.ok(Array.isArray(sources.sources));
   assert.equal(sources.sources.find(s => s.id==="cctv-news")?.enabled,false);
   assert.equal(sources.sources.find(s => s.id==="rss-tw-news-ithome")?.enabled,true);
+  await page.getByRole("button", {name:"高階篩選",exact:true}).click();
+  await page.getByLabel("免費類型",{exact:true}).selectOption("long_term");
+  await page.getByLabel("地區線索",{exact:true}).selectOption("taiwan_mentioned");
+  await page.getByLabel("收費風險",{exact:true}).selectOption("possible_charge");
+  await page.getByRole("button",{name:"長期免費 VPS，台灣可申請，需綁卡，超額可能收費",exact:true}).click();
+  await page.getByText("資源資格與費用線索",{exact:true}).waitFor({state:"visible"});
+  await page.getByText("已查證日期：尚未查證",{exact:true}).waitFor({state:"visible"});
+  assert.ok(new URL(page.url()).searchParams.get("billingRisk")==="possible_charge");
   await page.goto(url+"/?lang=en");
   await page.locator(".kibis-intro h2").waitFor({state:"visible"});
   assert.equal(await page.locator("html").getAttribute("lang"),"en");
@@ -59,7 +72,7 @@ try {
   const mobileOverflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   assert.ok(mobileOverflow <= 2, "mobile overflow: " + mobileOverflow);
   assert.deepEqual(errors,[]);
-  console.log("[kibis-ui] PASS desktop 1440, mobile 390, zh-TW/en, dark/light, logo and source profile");
+  console.log("[kibis-ui] PASS desktop 1440, mobile 390, zh-TW/en, dark/light, logo, source profile, quality filters and unverified evidence detail");
 } catch(error) {
   console.error(logs);
   throw error;

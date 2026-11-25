@@ -19,7 +19,7 @@ export type FeedState = {
 };
 
 export const DEFAULT_FEED_STATE: FeedState = {
-  preset: "all", search: "", source: "", categories: [], lang: "all", sort: "newest",
+  preset: "all", search: "", source: "", categories: [], lang: "all", sort: "discovery",
   range: "auto", priceCap: "auto", minScore: "all", obtain: "auto", kindFilter: "auto", unreadOnly: false,
   freeType: "all", regionHint: "all", billingRisk: "all", cardRequirement: "all", resourceNature: "all",
 };
@@ -39,7 +39,7 @@ export function readFeedState(search: string): FeedState {
     search: (p.get("q") ?? "").slice(0, 300), source: (p.get("source") ?? "").slice(0, 200),
     categories: [...new Set((p.get("category") ?? "").split(",").filter((v) => isCategory(v) && allowed.has(v)))],
     lang: pick(p.get("filterLang"), ["all", "zh", "en"], "all") as FeedState["lang"],
-    sort: pick(p.get("sort"), ["newest", "discovery", "score", "oldest", "expiring", "price_asc"], "newest"),
+    sort: pick(p.get("sort"), ["newest", "discovery", "score", "oldest", "expiring", "price_asc"], "discovery"),
     range: pick(p.get("range"), ["auto", "all", "1d", "3d", "7d", "30d"], "auto"),
     priceCap: pick(p.get("price"), ["auto", "all", "free", "5", "10", "30", "100"], "auto"),
     minScore: pick(p.get("score"), ["all", "50", "60", "70"], "all"),
@@ -95,7 +95,7 @@ export function buildStatsQuery(query: string): string {
 }
 
 export function countAdditionalFilters(state: FeedState): number {
-  return [state.source, state.categories.length, state.lang !== "all", state.search.trim(), state.minScore !== "all", state.unreadOnly, state.kindFilter !== "auto", state.priceCap !== "auto", state.obtain !== "auto", state.range !== "auto", state.sort !== "newest", state.freeType !== "all", state.regionHint !== "all", state.billingRisk !== "all", state.cardRequirement !== "all", state.resourceNature !== "all"].filter(Boolean).length;
+  return [state.source, state.categories.length, state.lang !== "all", state.search.trim(), state.minScore !== "all", state.unreadOnly, state.kindFilter !== "auto", state.priceCap !== "auto", state.obtain !== "auto", state.range !== "auto", state.sort !== DEFAULT_FEED_STATE.sort, state.freeType !== "all", state.regionHint !== "all", state.billingRisk !== "all", state.cardRequirement !== "all", state.resourceNature !== "all"].filter(Boolean).length;
 }
 
 /** Describe actual enforced constraints, not a blanket claim that AI keep means free. */

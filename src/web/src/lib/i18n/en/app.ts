@@ -388,4 +388,8 @@ export const EN_APP: Record<string, string> = {
   "人民幣估算": "CNY estimate",
   "{n} 人民幣估算": "{n} CNY estimate",
   "低於 1 人民幣估算": "Below 1 CNY estimate",
+  "價格上限（人民幣估算）": "Price cap (CNY estimate)",
+  "價格：不限（人民幣估算）": "Any price (CNY estimate)",
+  "免費宣稱（未查證）": "Free claim (unverified)",
+  "≤ {n} 人民幣": "≤ {n} CNY",
 };
