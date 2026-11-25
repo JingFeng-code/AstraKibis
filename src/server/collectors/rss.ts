@@ -125,7 +125,7 @@ function parseFeed(xml: string): { title: string; items: FeedItem[] } {
   if (feed) {
     return { title: textOf(feed.title), items: asArray(feed.entry) };
   }
-  throw new Error("无法识别的 feed 格式（既不是 rss 也不是 atom）");
+  throw new Error("無法辨識 feed 格式（非 RSS 或 Atom）");
 }
 
 export const rssCollector: Collector = {
@@ -134,7 +134,7 @@ export const rssCollector: Collector = {
   defaults: { config: { feeds: [] } },
   async collect(ctx) {
     const feeds = (ctx.config.feeds as FeedSpec[] | undefined) ?? [];
-    if (!feeds.length) throw new Error("未配置 feeds");
+    if (!feeds.length) throw new Error("未設定 feeds");
 
     const items: RawItem[] = [];
     const problems: string[] = [];
@@ -156,7 +156,7 @@ export const rssCollector: Collector = {
         }
 
         const parsed = parseFeed(body);
-        ctx.log(feed.id + " ok:" + parsed.items.length + " items");
+        ctx.log(feed.id + " 成功：" + parsed.items.length + " 筆");
         okFeeds += 1;
 
         const incCats = (feed.includeCategories ?? []).map((s) => s.toLowerCase());
@@ -221,11 +221,11 @@ export const rssCollector: Collector = {
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         problems.push(feed.id + ": " + message);
-        ctx.log(feed.id + " FAILED " + message);
+        ctx.log(feed.id + " 失敗：" + message);
       }
     }
 
-    if (!okFeeds && problems.length) throw new Error("全部 feed 失败: " + problems.join("; "));
+    if (!okFeeds && problems.length) throw new Error("所有 feed 採集失敗： " + problems.join("; "));
 
     return {
       items: items.slice(0, ctx.maxItems),

@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { t } from "../lib/i18n.ts";
+import { t, uiMessage } from "../lib/i18n.ts";
 import { Activity, Check, Copy, Database, ExternalLink, Gauge, KeyRound, Loader2, Pencil, Play, Plus, Rss, Search, ShieldCheck, Trash2, X } from "lucide-react";
 import {
   CATEGORY_LABEL,
@@ -897,7 +897,7 @@ export function OpsPanel({
                         (runnerTest.ok ? "bg-deal-subtle text-deal" : "bg-alert-subtle text-alert")
                       }
                     >
-                      {runnerTest.ok ? t("执行器在线") + (runnerTest.chrome ? t(" · Chrome 就绪") : "") : t("未连通：") + (runnerTest.error ?? t("离线"))}
+                      {runnerTest.ok ? t("执行器在线") + (runnerTest.chrome ? t(" · Chrome 就绪") : "") : t("未连通：") + (runnerTest.error ? uiMessage(runnerTest.error) : t("离线"))}
                     </span>
                   )}
                 </div>
@@ -1199,7 +1199,7 @@ export function OpsPanel({
                   <div key={s.id} className="px-4 py-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="truncate text-[13px] font-medium text-ink-950">{s.name}</div>
+                        <div className="truncate text-[13px] font-medium text-ink-950">{uiMessage(s.name)}</div>
                         <div className="truncate font-mono text-[11px] text-ink-400">
                           {s.id} · {s.kind}
                         </div>
@@ -1325,7 +1325,7 @@ export function OpsPanel({
                       <Fragment key={s.id}>
                       <tr className="hover:bg-surface-hover">
                         <td className="px-4 py-2.5">
-                          <div className="font-medium text-ink-950">{s.name}</div>
+                          <div className="font-medium text-ink-950">{uiMessage(s.name)}</div>
                           <div className="font-mono text-[11px] text-ink-400">
                             {s.id} · {s.kind}
                           </div>
@@ -1587,7 +1587,7 @@ export function OpsPanel({
                       {r.duration_ms ? (r.duration_ms / 1000).toFixed(1) + "s" : "—"}
                     </td>
                     <td className="max-w-[320px] truncate px-4 py-2 font-mono text-[11px] text-ink-500">
-                      {r.error ?? r.status}
+                      {r.error ? uiMessage(r.error) : r.status}
                     </td>
                   </tr>
                 ))}

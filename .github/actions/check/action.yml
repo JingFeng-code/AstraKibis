@@ -27,3 +27,13 @@ runs:
     - name: Build web
       shell: bash
       run: npx vite build
+
+    - name: Install Chromium for UI smoke
+      if: github.repository == 'JingFeng-code/AstraKibis'
+      shell: bash
+      run: pnpm exec playwright install --with-deps chromium
+
+    - name: AstraKibis browser smoke (local test database)
+      if: github.repository == 'JingFeng-code/AstraKibis'
+      shell: bash
+      run: node --no-warnings scripts/kibis-ui-smoke.mjs

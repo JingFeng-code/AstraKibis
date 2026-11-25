@@ -385,7 +385,7 @@ export async function warmClusterCache(log: (msg: string) => void = console.log)
     // 让出事件循环，别把 API 请求饿死
     await new Promise((r) => setTimeout(r, 20));
   }
-  log(`[cluster] 预热完成，建了 ${built}/${combos.length} 个分组索引`);
+  log(`[cluster] 索引預先載入完成，已建立 ${built}/${combos.length} 個群組索引`);
 }
 
 /** 一次请求内复用的分组聚类入口：同一请求里同一个分组只算一次。 */
@@ -889,7 +889,7 @@ const fetchLimit = Math.min(Math.max(offset + limit * 3, 240), 600);
     if (format === "json") {
       return c.json({ count: rows.length, items: applyUserStates(rows.map((r) => shape(r, subKeywords)), viewer.user?.id ?? null) });
     }
-    const lines = [`# 资源雷达导出 (${new Date().toISOString().slice(0, 10)}) · ${rows.length} 条`, ""];
+    const lines = [`# AstraKibis 匯出 (${new Date().toISOString().slice(0, 10)}) · ${rows.length} 筆`, ""];
     for (const r of rows) {
       const s = shape(r, subKeywords);
       const tags = [s.source_id, s.category, s.is_free === 1 ? "白嫖" : s.price ? `≤${Math.round(s.price)}元` : null]
@@ -898,7 +898,7 @@ const fetchLimit = Math.min(Math.max(offset + limit * 3, 240), 600);
       lines.push(`- [${r.title}](${r.url}) — *${tags}*` + (s.codes.length ? ` \`${s.codes.join(" / ")}\`` : ""));
     }
     c.header("Content-Type", "text/markdown; charset=utf-8");
-    c.header("Content-Disposition", `attachment; filename="freebie-radar-${new Date().toISOString().slice(0, 10)}.md"`);
+    c.header("Content-Disposition", `attachment; filename="astra-kibis-${new Date().toISOString().slice(0, 10)}.md"`);
     return c.body(lines.join("\n"));
   });
 
@@ -1562,7 +1562,7 @@ const fetchLimit = Math.min(Math.max(offset + limit * 3, 240), 600);
     if (!pushEnabled || config.pushChannel !== "telegram" || !config.telegramBotToken || !config.telegramChatId) {
       return c.json({ error: "Telegram 推送未启用或缺少凭据" }, 400);
     }
-    await sendTelegram("🛰 资源雷达测试消息 · " + new Date().toLocaleString("zh-CN"));
+    await sendTelegram("AstraKibis 測試訊息 · " + new Date().toLocaleString("zh-TW"));
     return c.json({ ok: true });
   });
 
@@ -1985,7 +1985,7 @@ const fetchLimit = Math.min(Math.max(offset + limit * 3, 240), 600);
     if (viaWebhook ? !cfg.settings.webhookUrl : !cfg.hasToken || !cfg.chatId)
       return c.json({ error: viaWebhook ? "请先保存 webhook 地址" : "请先保存 Bot Token 与 Chat ID" }, 400);
     try {
-      await sendTelegramToUser(userId, "🛰 资源雷达 · 个人推送测试消息\n" + new Date().toLocaleString("zh-CN"));
+      await sendTelegramToUser(userId, "AstraKibis · 個人推播測試訊息\n" + new Date().toLocaleString("zh-TW"));
       return c.json({ ok: true });
     } catch (err) {
       return c.json({ error: err instanceof Error ? err.message : String(err) }, 400);

@@ -129,3 +129,8 @@ export function t(zh: string, params?: Record<string, string | number>): string 
 
 /** `t` 的别名：作用域里已有名为 `t` 的变量（如 `.find((t) => ...)`）时用它避免遮蔽。 */
 export const tr = t;
+
+/** Display-only conversion of dynamic UI messages; never mutate API identifiers or stored content. */
+export function uiMessage(message: string): string {
+  return lang === "zh" ? toTaiwanUi(message) : (EN[message] ?? message);
+}

@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-  --color-canvas: #f6f7f9;
-  --color-canvas-subtle: #eceef2;
-  --color-surface: #ffffff;
-  --color-surface-hover: #f7f8fb;
-  --color-surface-muted: #f1f3f6;
+  --color-canvas: #f5f1e8;
+  --color-canvas-subtle: #eae2d4;
+  --color-surface: #fffdf8;
+  --color-surface-hover: #f8f4ec;
+  --color-surface-muted: #eee7db;
 
-  --color-ink-950: #111318;
-  --color-ink-900: #1b1e26;
-  --color-ink-700: #374151;
-  --color-ink-600: #4b5563;
-  --color-ink-500: #525c6b;
-  --color-ink-400: #646f80;
-  --color-ink-300: #d1d5de;
-  --color-ink-200: #e6e8ec;
-  --color-ink-100: #f1f3f6;
+  --color-ink-950: #223449;
+  --color-ink-900: #2a394a;
+  --color-ink-700: #394b5f;
+  --color-ink-600: #475a6d;
+  --color-ink-500: #586879;
+  --color-ink-400: #647385;
+  --color-ink-300: #d9cfbf;
+  --color-ink-200: #e4dbce;
+  --color-ink-100: #eee7db;
 
-  --color-brand: #111318;
-  --color-brand-hover: #272b36;
-  --color-brand-dark: #090a0d;
-  --color-brand-subtle: #eef0ff;
-  --color-brand-border: #c7d0f8;
-  --color-accent: #312e81;
+  --color-brand: #223449;
+  --color-brand-hover: #344d65;
+  --color-brand-dark: #172739;
+  --color-brand-subtle: #e9edf0;
+  --color-brand-border: #bac9d5;
+  --color-accent: #365875;
 
   --color-deal: #047857;
   --color-deal-subtle: #ecfdf5;
@@ -36,18 +36,18 @@
   --color-alert-subtle: #fef2f2;
   --color-alert-border: #fecaca;
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   /* 实心按钮/滑块/遮罩：与「文字深浅」解耦，深色主题下按钮翻成靛蓝，
      白字与白色滑块在两种主题都成立。实心块一律用 bg-solid，写 bg-ink-950 会在深色主题下翻成浅底白字 */
-  --color-solid: #111318;
-  --color-solid-hover: #272b36;
-  --color-solid-dark: #090a0d;
+  --color-solid: #223449;
+  --color-solid-hover: #344d65;
+  --color-solid-dark: #172739;
   --color-on-solid: #ffffff;
   --color-knob: #ffffff;
   --color-overlay: rgb(17 19 24 / 0.75);
-  --color-accent-solid: #312e81;
+  --color-accent-solid: #365875;
   --color-deal-solid: #047857;
   --color-alert-solid: #dc2626;
 
@@ -80,16 +80,16 @@ html[data-theme="dark"] {
   --color-brand: #e4e8ef;
   --color-brand-hover: #ffffff;
   --color-brand-dark: #ffffff;
-  --color-brand-subtle: #1d2440;
-  --color-brand-border: #37416b;
-  --color-accent: #aab6ff;
-  --color-accent-solid: #4f46e5;
+  --color-brand-subtle: #26394c;
+  --color-brand-border: #40566c;
+  --color-accent: #d8b779;
+  --color-accent-solid: #365875;
   --color-deal-solid: #047857;
   --color-alert-solid: #b91c1c;
 
-  --color-solid: #4f46e5;
-  --color-solid-hover: #6366f1;
-  --color-solid-dark: #4338ca;
+  --color-solid: #365875;
+  --color-solid-hover: #466886;
+  --color-solid-dark: #28435c;
   --color-knob: #ffffff;
   --color-overlay: rgb(0 0 0 / 0.72);
 
@@ -474,3 +474,16 @@ body:has(.site-dialog[open]) { overflow: hidden; }
     animation: none !important;
   }
 }
+
+/* AstraKibis — quiet field journal, warm paper and ink-blue. */
+.kibis-identity { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.kibis-mark { width: 34px; height: 34px; flex: none; }
+.kibis-wordmark { font-weight: 750; font-size: 16px; line-height: 1.15; letter-spacing: -.035em; }
+.kibis-tagline { font-size: 10px; color: var(--color-ink-500); margin-top: 3px; }
+.kibis-intro { margin: 18px 24px 12px; border: 1px solid var(--color-ink-200); border-radius: 14px; background: var(--color-canvas); padding: 18px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.kibis-intro h2 { font-size: 22px; font-weight: 700; color: var(--color-ink-950); letter-spacing: -.025em; line-height:1.3; }
+.kibis-intro p { font-size: 12px; color:var(--color-ink-600); line-height:1.7; margin-top:5px; max-width: 62ch; }
+.kibis-intro .kibis-stamp { width: 48px; height:48px; flex:none; opacity:.9; }
+.workspace-rail nav button[aria-current="page"] { border-radius: 8px; }
+.channel-nav button[aria-pressed="true"] { background:var(--color-brand-subtle); border-radius:7px 7px 0 0; }
+@media (max-width:639px) { .kibis-mark {width:28px;height:28px;} .kibis-wordmark {font-size:15px;} .kibis-tagline {display:none;} .kibis-intro {margin:10px 14px; padding:12px 14px; gap:10px;} .kibis-intro h2 {font-size:17px;} .kibis-intro p {font-size:11px;} .kibis-intro .kibis-stamp {width:36px;height:36px;} }

@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { formatInterval } from "../lib/sources.ts";
-import { t } from "../lib/i18n.ts";
+import { t, uiMessage } from "../lib/i18n.ts";
 
 import type { ComponentType } from "react";
 
@@ -79,7 +79,7 @@ export function SourcePanel({ views, preset, onPickPreset, grouped, source, onPi
                     }
                     title={item.id + " · " + t("采集周期 {interval}", { interval: formatInterval(item.interval_sec) })}
                   >
-                    <span className="min-w-0 truncate">{item.name}</span>
+                    <span className="min-w-0 truncate">{uiMessage(item.name)}</span>
                     <span className="ml-1.5 shrink-0 font-mono text-[11px] tabular-nums text-ink-400">{item.items}</span>
                   </button>
                 ))}

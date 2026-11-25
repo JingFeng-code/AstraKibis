@@ -123,7 +123,7 @@ export function getOnboarding(): Onboarding {
   const row = get<{ value: string }>("SELECT value FROM settings WHERE key = ?", ONBOARDING_KEY);
   const base: Onboarding = {
     enabled: true,
-    title: "欢迎来到资源雷达",
+    title: "歡迎來到 AstraKibis",
     content: DEFAULT_ONBOARDING_CONTENT,
     showGuideCards: true,
     version: 1,

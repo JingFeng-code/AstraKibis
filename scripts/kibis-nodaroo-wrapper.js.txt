@@ -1,0 +1,5 @@
+// Copy to the existing untracked launcher.js on Nodaroo. Keep Auto Update OFF.
+import("./scripts/kibis-launcher.mjs").then(({ main }) => main()).catch(error => {
+  console.error("[AstraKibis] 啟動失敗：", error.message);
+  process.exitCode = 1;
+});

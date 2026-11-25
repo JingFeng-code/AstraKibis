@@ -21,3 +21,6 @@ docs/fs-test.json
 shots/
 scripts/__pycache__/
 __pycache__/
+
+# 本機更新備份含敏感設定，不得提交
+.kibis-backups/

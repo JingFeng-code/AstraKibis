@@ -349,4 +349,8 @@ export const EN_APP: Record<string, string> = {
   "查看说明": "View guide",
   "更多操作": "More actions",
   "卡片": "Cards",
+  "每日收集小宝藏": "Little treasures, gathered daily",
+  "资源探索": "Discover resources",
+  "今天发现什么？": "What will you discover today?",
+  "探索台湾与全球的免费资源、开源工具和科技资讯。领取前请核对地区限制、费用与来源。": "Discover free resources, open-source tools and tech news from Taiwan and around the world. Check eligibility, fees and original sources before claiming.",
 };

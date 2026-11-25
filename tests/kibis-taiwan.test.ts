@@ -13,6 +13,8 @@ test("Taiwan profile prioritizes global and Taiwan sources", () => {
   assert.ok(isTaiwanPreferred("rss-freegroup"));
   assert.ok(isTaiwanPreferred("openrouter-free"));
   assert.ok(isTaiwanPreferred("rss-tw-news-ithome"));
+  assert.ok(isTaiwanPreferred("rss-tw-news-briian"));
+  assert.ok(isTaiwanPreferred("rss-global-news-github-changelog"));
   assert.ok(TAIWAN_DEFERRED_SOURCE_IDS.includes("cctv-news"));
   assert.ok(TAIWAN_DEFERRED_SOURCE_IDS.includes("nga-deals"));
   assert.ok(TAIWAN_DEFERRED_SOURCE_IDS.every(id => !isTaiwanPreferred(id)));
@@ -33,6 +35,8 @@ test("existing SQLite profile applies once, retains data, and filters deferred s
   try {
     db.migrate();
     ensureSources();
+    assert.equal(db.get<{ enabled: number }>("SELECT enabled FROM sources WHERE id='rss-tw-news-briian'")?.enabled, 1);
+    assert.equal(db.get<{ enabled: number }>("SELECT enabled FROM sources WHERE id='rss-global-news-github-changelog'")?.enabled, 1);
     db.run("INSERT INTO sources (id,name,kind,enabled,config,interval_sec,created_at) VALUES (?,?,?,?,?,?,?)", "kibis-custom-test", "Custom feed", "rss", 1, "{}", 3600, new Date().toISOString());
     db.run("UPDATE sources SET enabled=1 WHERE id='cctv-news'");
     db.run("UPDATE sources SET enabled=0 WHERE id='rss-freegroup'");

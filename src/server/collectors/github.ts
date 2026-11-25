@@ -70,7 +70,7 @@ export const githubCollector: Collector = {
           continue;
         }
         const parsed = parseMarkdownList(res.body, limit);
-        ctx.log(spec.repo + " parsed " + parsed.length + " entries");
+        ctx.log(spec.repo + " 已解析 " + parsed.length + " 筆");
         for (const p of parsed) {
           items.push({
             externalId: p.url,
