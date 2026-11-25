@@ -129,7 +129,7 @@ export const config = {
   updateWebhookToken: str("UPDATE_WEBHOOK_TOKEN"),
   appCommit: str("APP_COMMIT"),
   appBuildTime: str("APP_BUILD_TIME"),
-  appRepo: str("APP_REPO", "ZiChuanLan/freebie-radar"),
+  appRepo: str("APP_REPO", "JingFeng-code/AstraKibis"),
   /** 管理端密码；留空则 selfhost 下管理接口开放、public 下管理区锁定（安全兜底） */
   adminToken: str("ADMIN_TOKEN"),
   /** 留空兼容单域名部署；设置后管理 API 只在这些 Host 上接受凭据。 */

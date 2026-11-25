@@ -33,11 +33,13 @@ test("existing SQLite profile applies once, retains data, and filters deferred s
   try {
     db.migrate();
     ensureSources();
+    db.run("INSERT INTO sources (id,name,kind,enabled,config,interval_sec,created_at) VALUES (?,?,?,?,?,?,?)", "kibis-custom-test", "Custom feed", "rss", 1, "{}", 3600, new Date().toISOString());
     db.run("UPDATE sources SET enabled=1 WHERE id='cctv-news'");
     db.run("UPDATE sources SET enabled=0 WHERE id='rss-freegroup'");
     ingestItems("cctv-news", [{ externalId: "kibis-old", title: "Existing news article", url: "https://example.com/kibis-old" }]);
     db.run("UPDATE items SET status='active', ai_keep=1, kind='news', starred=1 WHERE external_id='kibis-old'");
     assert.equal(applyTaiwanProfile(), true);
+    assert.equal(db.get<{ enabled: number }>("SELECT enabled FROM sources WHERE id='kibis-custom-test'")?.enabled, 1);
     assert.equal(db.get<{ enabled: number }>("SELECT enabled FROM sources WHERE id='cctv-news'")?.enabled, 0);
     assert.equal(db.get<{ enabled: number }>("SELECT enabled FROM sources WHERE id='rss-freegroup'")?.enabled, 1);
     assert.equal(db.get<{ starred: number }>("SELECT starred FROM items WHERE external_id='kibis-old'")?.starred, 1);

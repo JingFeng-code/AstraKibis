@@ -64,10 +64,7 @@ function detectLang(): Lang {
     }
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (isLang(saved)) return saved;
-    const nav = (window.navigator.language || "").toLowerCase();
-    if (nav.startsWith("zh")) return "zh";
-    // 非中文浏览器默认英文；中文用户首次访问不会被翻转
-    // English remains selectable; the Taiwan edition defaults to Traditional Chinese.
+    // 未指定語言時，一律使用台灣繁體中文；英文仍可手動切換。
   } catch {
     /* 隐私模式下 localStorage 会抛错，忽略即可 */
   }
