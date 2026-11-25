@@ -23,8 +23,11 @@ import { getBuildInfo } from "./updater.ts";
 import { registerSecurity } from "./security.ts";
 import { reconcileFixedSourceCategories } from "./source-settings.ts";
 
+import { applyTaiwanProfile } from "./taiwan-profile.ts";
+
 migrate();
 ensureSources();
+if (config.sourceProfile === "taiwan" && applyTaiwanProfile()) console.log("[kibis] 已套用台灣資料來源設定（保留歷史資料與收藏）");
 const rerouted = reconcileFixedSourceCategories();
 if (rerouted) console.log(`[sources] 固定分类已重整 ${rerouted} 条历史资源（未触发 AI 或推送）`);
 // 上次进程意外退出可能遗留 status='running' 的记录，启动时收口

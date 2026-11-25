@@ -120,7 +120,7 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 let SOURCE_NAMES: Record<string, string> = { ...SOURCE_LABEL };
-const sourceName = (id: string) => SOURCE_NAMES[id] ?? SOURCE_LABEL[id] ?? id;
+const sourceName = (id: string) => t(SOURCE_NAMES[id] ?? SOURCE_LABEL[id] ?? id);
 
 
 function useApi<T>(url: string | null, scope = ""): { data: T | null; loading: boolean; error: string | null; reload: () => void; update: (updater: (current: T | null) => T | null) => void } {

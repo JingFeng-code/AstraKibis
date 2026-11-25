@@ -24,10 +24,13 @@ import { EN_USERPUSH } from "./i18n/en/userpush.ts";
 import { EN_ADMIN } from "./i18n/en/admin.ts";
 import { EN_MISC } from "./i18n/en/misc.ts";
 
+import { toTaiwanUi } from "./i18n/zh-tw.ts";
+
+// Keep old zh preference keys compatible; the Chinese UI is now zh-TW.
 export type Lang = "zh" | "en";
 
 export const LANGS: { key: Lang; label: string; short: string }[] = [
-  { key: "zh", label: "简体中文", short: "中" },
+  { key: "zh", label: "繁體中文", short: "繁" },
   { key: "en", label: "English", short: "EN" },
 ];
 
@@ -53,17 +56,15 @@ function isLang(value: unknown): value is Lang {
 function detectLang(): Lang {
   if (typeof window === "undefined") return "zh";
   try {
-    const fromUrl = new URLSearchParams(window.location.search).get("lang");
+    const rawLang = new URLSearchParams(window.location.search).get("lang");
+    const fromUrl = rawLang?.toLowerCase() === "zh-tw" ? "zh" : rawLang;
     if (isLang(fromUrl)) {
       window.localStorage.setItem(STORAGE_KEY, fromUrl);
       return fromUrl;
     }
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (isLang(saved)) return saved;
-    const nav = (window.navigator.language || "").toLowerCase();
-    if (nav.startsWith("zh")) return "zh";
-    // 非中文浏览器默认英文；中文用户首次访问不会被翻转
-    if (nav.length > 0) return "en";
+    // 未指定語言時，一律使用台灣繁體中文；英文仍可手動切換。
   } catch {
     /* 隐私模式下 localStorage 会抛错，忽略即可 */
   }
@@ -77,13 +78,13 @@ export function getLang(): Lang {
 }
 
 export function dateLocale(): string {
-  return lang === "en" ? "en-US" : "zh-CN";
+  return lang === "en" ? "en-US" : "zh-TW";
 }
 
 /** 把当前语言同步到 <html lang>，供 CSS/无障碍/浏览器翻译使用。 */
 export function applyDocumentLang(): void {
   if (typeof document === "undefined") return;
-  document.documentElement.lang = lang === "en" ? "en" : "zh-CN";
+  document.documentElement.lang = lang === "en" ? "en" : "zh-TW";
 }
 
 /** 切换语言：写 localStorage 后整页重载，保证模块级常量也按新语言求值。 */
@@ -113,7 +114,7 @@ const warned = new Set<string>();
 
 /** 翻译一条中文文案。参数用 `{name}` 占位，中英两侧都做替换。 */
 export function t(zh: string, params?: Record<string, string | number>): string {
-  if (lang === "zh") return interpolate(zh, params);
+  if (lang === "zh") return interpolate(toTaiwanUi(zh), params);
   const hit = EN[zh];
   if (hit == null) {
     const dev = (import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV;

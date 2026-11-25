@@ -51,7 +51,9 @@ export const COLLECTORS: Collector[] = [
 const BY_KIND = new Map(COLLECTORS.map((c) => [c.kind, c]));
 
 /** 内置源清单；collector 落地后在此追加。 */
-export const SEEDS: SourceSeed[] = [
+import { isTaiwanPreferred } from "../../shared/taiwan-profile.ts";
+
+const UPSTREAM_SEEDS: SourceSeed[] = [
   { id: "linuxdo-welfare", name: "LINUX DO · 福利羊毛", kind: "linuxdo", enabled: true, intervalSec: 90, config: { categoryId: 36, rssSlug: "welfare", categoryName: "福利羊毛" } },
   { id: "linuxdo-resource", name: "LINUX DO · 资源荟萃", kind: "linuxdo", enabled: false, intervalSec: 180, config: { categoryId: 14, rssSlug: "resource", categoryName: "资源荟萃", fixedCategory: "pan" } },
   { id: "linuxdo-develop", name: "LINUX DO · 开发调优", kind: "linuxdo", enabled: true, intervalSec: 600, config: { categoryId: 4, rssSlug: "develop", categoryName: "开发调优" } },
@@ -245,7 +247,15 @@ export const SEEDS: SourceSeed[] = [
   { id: "github-awesome-ai", name: "GitHub · AI 工具清单", kind: "github-readme", enabled: false, config: { repos: [{ repo: "mahseema/awesome-ai-tools", limit: 40 }] } },
   { id: "github-selfhosted", name: "GitHub · 开源自托管清单", kind: "github-readme", enabled: false, config: { repos: [{ repo: "awesome-selfhosted/awesome-selfhosted", limit: 40 }] } },
   { id: "tg-channels", name: "Telegram 羊毛频道", kind: "telegram", enabled: false, config: { channels: [] } },
+  { id: "rss-tw-news-ithome", name: "iThome · 台灣 IT 與資安", kind: "rss", enabled: false, intervalSec: 3600, config: { kindHint: "info", categoryHint: "tech", feeds: [{ id: "rss-tw-news-ithome", url: "https://www.ithome.com.tw/rss.xml", limit: 20, kindHint: "info", categoryHint: "tech" }] } },
+  { id: "rss-tw-news-technews", name: "科技新報 · 台灣科技資訊", kind: "rss", enabled: false, intervalSec: 3600, config: { kindHint: "info", categoryHint: "tech", feeds: [{ id: "rss-tw-news-technews", url: "https://technews.tw/feed/", limit: 20, kindHint: "info", categoryHint: "tech" }] } },
+  { id: "rss-global-news-dotnet", name: "Microsoft .NET · 官方開發資訊", kind: "rss", enabled: false, intervalSec: 3600, config: { kindHint: "info", categoryHint: "dev", feeds: [{ id: "rss-global-news-dotnet", url: "https://devblogs.microsoft.com/dotnet/feed/", limit: 20, kindHint: "info", categoryHint: "dev" }] } },
+  { id: "rss-global-news-github", name: "GitHub Blog · 官方開發資訊", kind: "rss", enabled: false, intervalSec: 3600, config: { kindHint: "info", categoryHint: "dev", feeds: [{ id: "rss-global-news-github", url: "https://github.blog/feed/", limit: 20, kindHint: "info", categoryHint: "dev" }] } },
 ];
+
+export const SEEDS: SourceSeed[] = config.sourceProfile === "taiwan"
+  ? UPSTREAM_SEEDS.map(seed => ({ ...seed, enabled: isTaiwanPreferred(seed.id) }))
+  : UPSTREAM_SEEDS;
 
 /** 供本机 Playwright 采集器把结果回传到服务器；同时补写 runs / sources 状态，保证 /status 有记录。 */
 /**
