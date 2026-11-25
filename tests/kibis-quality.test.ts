@@ -25,3 +25,8 @@ test("quality filters survive URL state and reject unrecognized parameters", () 
   assert.deepEqual(readFeedState(writeFeedSearch("?lang=en",state)),state);
   assert.equal(readFeedState("?billingRisk=zero_guaranteed").billingRisk,"all");
 });
+
+import { toTaiwanUi } from "../src/web/src/lib/i18n/zh-tw.ts";
+test("resource UI labels use user-facing Taiwan terminology, not programming jargon", () => {
+  for (const label of ["免費類型","資訊類型","免費類型未確認","地區線索","收費風險","資源資格與費用線索","已查證日期：尚未查證"]) assert.equal(toTaiwanUi(label),label);
+});
