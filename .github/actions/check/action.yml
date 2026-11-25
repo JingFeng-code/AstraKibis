@@ -37,3 +37,10 @@ runs:
       if: github.repository == 'JingFeng-code/AstraKibis'
       shell: bash
       run: node --no-warnings scripts/kibis-ui-smoke.mjs
+
+    - name: Production dependency audit (report only)
+      if: github.repository == 'JingFeng-code/AstraKibis'
+      shell: bash
+      run: |
+        pnpm audit --prod --json > /tmp/kibis-audit.json || true
+        node -e "const fs=require('fs');const s=fs.readFileSync('/tmp/kibis-audit.json','utf8');try{const j=JSON.parse(s);console.log('[kibis-audit]',JSON.stringify({metadata:j.metadata,advisories:Object.values(j.advisories||{}).map(a=>({id:a.id,module:a.module_name,severity:a.severity,title:a.title,patched:a.patched_versions,url:a.url})),error:j.error}))}catch{console.log('[kibis-audit] audit unavailable; not a clean bill of health')}"

@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { config } from "./config.ts";
+import { assessResource } from "../shared/resource-quality.ts";
 
 let db: DatabaseSync | null = null;
 let dbGeneration = 0;
@@ -555,6 +556,7 @@ export function getDb(): DatabaseSync {
     }
     return zh >= 2 && zh / Math.max(t.length, 1) >= 0.12 ? 1 : 0;
   });
+  db.function("kibis_quality", { deterministic: true }, (title, summary, kind) => JSON.stringify(assessResource(String(title ?? ""), typeof summary === "string" ? summary : null, typeof kind === "string" ? kind : null)));
   return db;
 }
 

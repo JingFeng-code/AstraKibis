@@ -10,6 +10,7 @@ import { applyChannelQuery } from "../shared/channel-query.ts";
 import { TitleDeduper } from "./enrich/dedup.ts";
 import { aiEnabled, config, pushEnabled } from "./config.ts";
 import { discoverySourceFilter } from "./source-visibility.ts";
+import { assessResource, isCatalogSource, FREE_TYPES, REGIONS, BILLING_RISKS, CARD_REQUIREMENTS, CATALOG_SOURCE_IDS } from "../shared/resource-quality.ts";
 import { getCookieSettings, toPublicCookieStatus, updateCookieSettings, type CookieSiteKey } from "./cookie-store.ts";
 import { identityOf, loadUserStates, registerAuthRoutes, resolveIdentity, userByRssToken } from "./auth.ts";
 import {
@@ -207,6 +208,8 @@ function shape(row: ItemRow, keywords: string[] = [], blockedBy: string | null =
     raw: undefined,
     matched: matchKeywords(row, keywords),
     blockedBy,
+    resourceQuality: assessResource(row.title, row.summary, row.kind),
+    resourceNature: isCatalogSource(row.source_id) ? "catalog" : "update",
   };
 }
 
@@ -233,6 +236,7 @@ function applyUserStates<T extends { id: number; starred: boolean; read: boolean
 
 const SORTS: Record<string, string> = {
   score: "score DESC, COALESCE(published_at, first_seen_at) DESC",
+  discovery: `CASE WHEN source_id IN (${CATALOG_SOURCE_IDS.map(id => "'" + id + "'").join(",")}) THEN 1 ELSE 0 END ASC, COALESCE(published_at, first_seen_at) DESC, id DESC`,
   newest: "COALESCE(published_at, first_seen_at) DESC",
   oldest: "COALESCE(published_at, first_seen_at) ASC",
   expiring: "CASE WHEN expires_at IS NULL THEN 1 ELSE 0 END ASC, expires_at ASC, score DESC",
@@ -459,6 +463,21 @@ function buildItemsQuery(
     const visibility = discoverySourceFilter();
     where.push(visibility.sql);
     params.push(...visibility.params);
+  }
+  const qualityFields = [
+    ["freeType", FREE_TYPES], ["regionHint", REGIONS], ["billingRisk", BILLING_RISKS], ["cardRequirement", CARD_REQUIREMENTS],
+  ] as const;
+  const jsonKeys = { freeType: "freeType", regionHint: "region", billingRisk: "billing", cardRequirement: "card" } as const;
+  for (const [key, allowed] of qualityFields) {
+    const value = q[key];
+    if (value && (allowed as readonly string[]).includes(value)) {
+      where.push("json_extract(kibis_quality(title, summary, kind), '$." + jsonKeys[key] + "') = ?");
+      params.push(value);
+    }
+  }
+  if (q.resourceNature === "catalog" || q.resourceNature === "update") {
+    where.push(`source_id ${q.resourceNature === "catalog" ? "IN" : "NOT IN"} (${CATALOG_SOURCE_IDS.map(() => "?").join(",")})`);
+    params.push(...CATALOG_SOURCE_IDS);
   }
   if (q.category) {
     const cats = q.category.split(",").map((s) => s.trim()).filter(Boolean);
@@ -1333,7 +1352,7 @@ const fetchLimit = Math.min(Math.max(offset + limit * 3, 240), 600);
     const hasChannelFilter = Boolean(
       q.preset || q.kind || q.obtain || q.aiOnly || q.hideRejected || q.unexpired || q.freeOnly || q.maxPrice ||
       q.source || q.search || q.since || q.lang || q.hasCodes || q.expiring || q.starred ||
-      q.unread || q.subscribed || q.minScore || q.status,
+      q.unread || q.subscribed || q.minScore || q.status || q.freeType || q.regionHint || q.billingRisk || q.cardRequirement || q.resourceNature,
     );
     let byCategory: { category: string | null; n: number }[];
     if (hasChannelFilter) {
