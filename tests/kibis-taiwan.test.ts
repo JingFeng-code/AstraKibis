@@ -52,6 +52,10 @@ test("existing SQLite profile applies once, retains data, and filters deferred s
     };
     assert.equal((await items("preset=all")).some(row => row.external_id === "kibis-old"), false);
     assert.equal((await items("preset=starred")).some(row => row.external_id === "kibis-old"), true);
+    assert.equal((await items("preset=all&source=cctv-news")).some(row => row.external_id === "kibis-old"), true);
+    db.run("UPDATE items SET status='ignored' WHERE external_id='kibis-old'");
+    assert.equal((await items("preset=hidden")).some(row => row.external_id === "kibis-old"), true);
+    db.run("UPDATE items SET status='active' WHERE external_id='kibis-old'");
     db.run("UPDATE sources SET enabled=1 WHERE id='cctv-news'");
     assert.equal(applyTaiwanProfile(), false);
     assert.equal(db.get<{ enabled: number }>("SELECT enabled FROM sources WHERE id='cctv-news'")?.enabled, 1);

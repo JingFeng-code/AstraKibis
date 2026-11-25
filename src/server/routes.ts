@@ -455,7 +455,7 @@ function buildItemsQuery(
     params.push(q.source);
   }
   // Retain historical rows; omit deferred disabled sources from ordinary browsing.
-  if (config.sourceProfile === "taiwan" && !q.source && q.starred !== "1" && q.status !== "ignored" && !scope.adminView) {
+  if (config.sourceProfile === "taiwan" && !q.source && q.starred !== "1" && q.status !== "ignored" && !adminStatusView) {
     const ids = TAIWAN_DEFERRED_SOURCE_IDS;
     where.push(`source_id NOT IN (SELECT id FROM sources WHERE enabled = 0 AND id IN (${ids.map(() => "?").join(",")}))`);
     params.push(...ids);
