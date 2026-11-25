@@ -14,6 +14,10 @@
 --backup 可在啟動前額外建立備份。備份包含私密設定，不得公開或上傳 GitHub；定期下載異地保留，檢查主機空間後人工清理舊備份。Node/npm 套件依然使用平台既有模式；並非完全可重現的 pnpm 部署。
 若建置失敗，保留上一個前端副本但不啟動不相容的服務；不要反覆重啟。
 
+## 從 Nodaroo 回滾程式（僅限資料庫相容版本）
+先確認資料庫 schema 與目標版本相容，並下載停機備份。在 Startup 的 Node args 輸入 --rollback-code=<備份資料夾名稱>（只填名稱，不含路徑），再啟動。啟動器核對備份 manifest、Git SHA、歷史關係及目標版本有無啟動器，備份目前資料後切至 detached HEAD、重建前端；不還原資料庫。成功後清空 Node args。回到 main 可使用 --return-main 一次，再清空參數。
+這不是跨 schema 的自動回滾；如果要復原舊資料庫、舊版沒有啟動器或未通過相容性檢查，使用下面人工程序。不要把 --rollback-code 當作修復資料庫的指令。
+
 ## 手動回滾（需 Shell 或管理員操作）
 先停止所有寫入，下載目前資料及備份。從 .kibis-backups/<日期-SHA>/manifest.json 確認上一版 SHA 和資料庫路徑。
 在有 Shell 的環境確認 git status、備份完整性後，用 git switch --detach <已驗收的SHA> 切回舊程式；必要時還原對應資料庫（保留目前 DB/WAL/SHM 到另一個備份，確認無程序使用後才替換），還原對應環境設定，依版本重新建置，再啟動。不要在有資料的情況下直接 reset --hard、刪除 data 或 Reinstall。

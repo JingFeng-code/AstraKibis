@@ -47,7 +47,7 @@ import { FeedToolbar } from "./components/FeedToolbar.tsx";
 import { ActiveFilters, type FilterKey } from "./components/ActiveFilters.tsx";
 import { SourcePanel } from "./components/SourcePanel.tsx";
 import { ADMIN_AUTH_EVENT } from "./lib/auth.ts";
-import { t } from "./lib/i18n.ts";
+import { uiMessage, t } from "./lib/i18n.ts";
 import { DEFAULT_FEED_STATE, buildFeedQuery, buildStatsQuery, countAdditionalFilters, feedPolicyLabels, readFeedState, writeFeedSearch, type FeedState } from "./lib/feedQuery.ts";
 import { configurationBase, configurationScope, readTab, readWorkspaceScope, tabUrl, type Tab, type WorkspaceScope } from "./lib/navigation.ts";
 import {
@@ -160,7 +160,7 @@ function useApi<T>(url: string | null, scope = ""): { data: T | null; loading: b
         if (ac.signal.aborted) return;
         setLoadedKey(key);
         setData(null);
-        setError(String(e));
+        setError(uiMessage(String(e)));
       })
       .finally(() => { if (!ac.signal.aborted) setLoading(false); });
     return () => ac.abort();
@@ -403,7 +403,7 @@ export function App() {
     return () => window.removeEventListener("keydown", onSlash);
   }, []);
   const notify = useCallback((msg: string) => {
-    setToast(msg);
+    setToast(uiMessage(msg));
     if (toastTimer.current) window.clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setToast(null), 1900);
   }, []);

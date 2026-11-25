@@ -75,17 +75,51 @@ function build(commit) {
     throw err;
   }
 }
+export function parseAction(args) {
+  if (args.length === 0) return { mode: "start" };
+  if (args.length !== 1) throw new Error("每次只能指定一種部署操作");
+  const arg = args[0];
+  if (arg === "--update") return { mode: "update" };
+  if (arg === "--backup") return { mode: "backup" };
+  if (arg === "--return-main") return { mode: "return-main" };
+  if (/^--rollback-code=\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z-[a-f0-9]{8}$/.test(arg)) return { mode: "rollback-code", backup: arg.slice("--rollback-code=".length) };
+  throw new Error("不支援的部署操作；一般啟動請留空");
+}
+function cleanTracked() {
+  if (git("status", "--porcelain", "--untracked-files=no")) throw new Error("有未提交的追蹤檔案，停止版本切換");
+}
+function rollbackCode(backup, current) {
+  const manifest = JSON.parse(readFileSync(at(".kibis-backups", backup, "manifest.json"), "utf8"));
+  const target = manifest.commit;
+  if (typeof target !== "string" || !/^[a-f0-9]{40}$/.test(target) || !target.startsWith(backup.slice(-8))) throw new Error("備份版本資料不符");
+  // A pre-launcher release must use the manual rollback procedure.
+  run("git", ["cat-file", "-e", target + ":scripts/kibis-launcher.mjs"]);
+  run("git", ["merge-base", "--is-ancestor", target, "main"]);
+  cleanTracked();
+  if (target !== current) {
+    snapshot(current);
+    run("git", ["switch", "--detach", target]);
+  }
+  say("已切回程式版本 " + target.slice(0, 8) + "，資料庫未還原");
+  return git("rev-parse", "HEAD");
+}
 export async function main(args = process.argv.slice(2)) {
   loadEnv();
-  if (args.some(arg => !["--update", "--backup"].includes(arg))) throw new Error("只支援 --update 或 --backup；一般啟動請留空");
+  const action = parseAction(args);
   if (!existsSync(at(".git"))) throw new Error("Nodaroo 啟動器需要 Git 原始碼部署");
   let commit = git("rev-parse", "HEAD");
   say("Node.js " + process.version + " / " + commit.slice(0, 8));
-  if (args.includes("--backup")) snapshot(commit);
-  if (args.includes("--update")) {
+  if (action.mode === "backup") snapshot(commit);
+  if (action.mode === "rollback-code") commit = rollbackCode(action.backup, commit);
+  if (action.mode === "return-main") {
+    cleanTracked();
+    if (git("branch", "--show-current") !== "main") { snapshot(commit); run("git", ["switch", "main"]); }
+    commit = git("rev-parse", "HEAD");
+  }
+  if (action.mode === "update") {
     if (git("branch", "--show-current") !== "main") throw new Error("更新僅允許 main 分支");
     if (git("remote", "get-url", "origin") !== "https://github.com/JingFeng-code/AstraKibis.git") throw new Error("origin 不符合 AstraKibis 正式來源");
-    if (git("status", "--porcelain", "--untracked-files=no")) throw new Error("有未提交的追蹤檔案，停止更新");
+    cleanTracked();
     run("git", ["fetch", "origin", "main"]);
     const target = git("rev-parse", "origin/main");
     if (target !== commit) {
