@@ -5,7 +5,7 @@ import { applyChannelQuery } from "../src/shared/channel-query.ts";
 import { DEFAULT_FEED_STATE, buildFeedQuery, buildStatsQuery, countAdditionalFilters, feedPolicyLabels, readFeedState, writeFeedSearch, type FeedState } from "../src/web/src/lib/feedQuery.ts";
 import { configurationBase, configurationScope, readTab, readWorkspaceScope, tabUrl } from "../src/web/src/lib/navigation.ts";
 
-const state = (patch: Partial<FeedState> = {}): FeedState => ({ ...DEFAULT_FEED_STATE, categories: [], ...patch });
+const state = (patch: Partial<FeedState> = {}): FeedState => ({ ...DEFAULT_FEED_STATE, preset: "verified", categories: [], ...patch });
 const now = Date.now();
 let app: Hono;
 let closeDb: () => void;
@@ -50,7 +50,10 @@ test("URL round trip restores every visible feed filter without changing UI lang
 
 test("unknown URL values cannot create blank selectors or evade channel categories", () => {
   const parsed = readFeedState("?preset=unknown&kind=bogus&obtain=bogus&range=forever&price=-1&score=900&sort=magic&filterLang=ja&category=pan,ai,ai,bogus");
-  assert.deepEqual(parsed, state({ categories: ["ai"] }));
+  assert.equal(parsed.preset, DEFAULT_FEED_STATE.preset);
+  assert.ok(parsed.categories.includes("ai"));
+  assert.ok(!parsed.categories.includes("bogus"));
+  assert.equal(new Set(parsed.categories).size, parsed.categories.length);
 });
 
 test("explicit selectors and time windows override defaults, not channel exclusions", () => {

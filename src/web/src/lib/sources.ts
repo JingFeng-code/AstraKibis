@@ -40,6 +40,8 @@ export const SOURCE_GROUPS: { key: SourceGroupKey; label: string }[] = [
 export function groupOfSource(s: Source): SourceGroupKey {
   const id = s.id;
   if (
+    id.startsWith("rss-tw-news-") ||
+    id.startsWith("rss-global-news-") ||
     id.startsWith("cctv-") ||
     id.startsWith("rss-chinanews-") ||
     id.startsWith("rss-gnews-") ||

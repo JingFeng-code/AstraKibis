@@ -40,6 +40,7 @@ export const config = {
   flaresolverrUrl: str("FLARESOLVERR_URL"),
   flaresolverrTimeoutMs: num("FLARESOLVERR_TIMEOUT_MS", 60_000),
 
+  sourceProfile: str("KIBIS_SOURCE_PROFILE", "upstream"),
   enabledSources: str("ENABLED_SOURCES")
     .split(",")
     .map((s) => s.trim())
