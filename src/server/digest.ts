@@ -1,4 +1,5 @@
 import { config } from "./config.ts";
+import { discoverySourceFilter } from "./source-visibility.ts";
 import { all, get, run } from "./db.ts";
 import { CATEGORY_LABEL, dedupeByTitle, KIND_LABEL, type ContentKind, type DedupeEntry } from "./enrich/index.ts";
 import { hasValueSignal, isNoiseTitle } from "./enrich/noise.ts";
@@ -67,8 +68,10 @@ export function pickDaily(date = new Date(), topN = config.dailyTopN): DigestIte
   const lookback = new Date(dayStart.getTime() - 2 * 86_400_000).toISOString();
   const now = new Date().toISOString();
 
+  const visibility = discoverySourceFilter();
   const rows = all<DigestItem>(
-    "SELECT id, source_id, title, url, url_key AS urlKey, category, kind, score, expires_at, published_at, price, is_free, obtain, ai, codes FROM items WHERE status = 'active' AND COALESCE(published_at, first_seen_at) >= ? AND (expires_at IS NULL OR expires_at > ?) ORDER BY score DESC, COALESCE(published_at, first_seen_at) DESC LIMIT 400",
+    `SELECT id, source_id, title, url, url_key AS urlKey, category, kind, score, expires_at, published_at, price, is_free, obtain, ai, codes FROM items WHERE status = 'active' AND ${visibility.sql} AND COALESCE(published_at, first_seen_at) >= ? AND (expires_at IS NULL OR expires_at > ?) ORDER BY score DESC, COALESCE(published_at, first_seen_at) DESC LIMIT 400`,
+    ...visibility.params,
     lookback,
     now,
   );
@@ -228,17 +231,20 @@ export function pickWeekly(date = new Date(), topN = 20): DigestItem[] {
   const end = new Date(date);
   const start = new Date(end.getTime() - WEEK_DAYS * 86_400_000);
   const now = new Date().toISOString();
+  const visibility = discoverySourceFilter();
   const rows = all<DigestItem>(
     `SELECT id, source_id, title, url, url_key AS urlKey, category, kind, score, expires_at, published_at,
             price, is_free, obtain, ai, codes, ai_quality
        FROM items
       WHERE status = 'active'
+        AND ${visibility.sql}
         AND ai_keep = 1
         AND kind != 'noise'
         AND COALESCE(published_at, first_seen_at) >= ?
         AND (expires_at IS NULL OR expires_at > ?)
       ORDER BY COALESCE(ai_quality, 0) DESC, score DESC, COALESCE(published_at, first_seen_at) DESC
       LIMIT 600`,
+    ...visibility.params,
     start.toISOString(),
     now,
   );

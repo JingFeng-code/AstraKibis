@@ -9,7 +9,7 @@ import { guessObtain } from "./enrich/obtain.ts";
 import { applyChannelQuery } from "../shared/channel-query.ts";
 import { TitleDeduper } from "./enrich/dedup.ts";
 import { aiEnabled, config, pushEnabled } from "./config.ts";
-import { TAIWAN_DEFERRED_SOURCE_IDS } from "../shared/taiwan-profile.ts";
+import { discoverySourceFilter } from "./source-visibility.ts";
 import { getCookieSettings, toPublicCookieStatus, updateCookieSettings, type CookieSiteKey } from "./cookie-store.ts";
 import { identityOf, loadUserStates, registerAuthRoutes, resolveIdentity, userByRssToken } from "./auth.ts";
 import {
@@ -456,9 +456,9 @@ function buildItemsQuery(
   }
   // Retain historical rows; omit deferred disabled sources from ordinary browsing.
   if (config.sourceProfile === "taiwan" && !q.source && q.starred !== "1" && q.status !== "ignored" && !adminStatusView) {
-    const ids = TAIWAN_DEFERRED_SOURCE_IDS;
-    where.push(`source_id NOT IN (SELECT id FROM sources WHERE enabled = 0 AND id IN (${ids.map(() => "?").join(",")}))`);
-    params.push(...ids);
+    const visibility = discoverySourceFilter();
+    where.push(visibility.sql);
+    params.push(...visibility.params);
   }
   if (q.category) {
     const cats = q.category.split(",").map((s) => s.trim()).filter(Boolean);
