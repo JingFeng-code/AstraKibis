@@ -7,3 +7,8 @@
 - 依賴稽核僅報告，不自動升級；Nodaroo npm 安裝樹可能與 CI pnpm 不同。HTTPS 尚未處理。
 - 待完成：官方逐筆查證及驗證日期、人工覆寫、完整來源可信度與額度模型、真正新台幣價格、跨源權重、八領域導覽、正式機備份演練。
 - 台灣版 34 個候選來源與 88 個預設停用來源仍維持；不新增未查證 RSS，不增加付費服務。
+
+## 安全修補驗收
+- 固定 @hono/node-server 2.1.9 與 fast-xml-parser 5.12.1；pnpm lockfile 由 registry 實際解析。禁止臨時改寫 lockfile 後宣稱 frozen install 通過。
+- 候選版本 CI 45684198661：244 項測試及 Chromium 通過，pnpm production audit 0 vulnerabilities；最終提交須再次以 frozen lockfile 驗證。
+- CI 另以 Nodaroo 使用的 Node 25.9.0 與 npm 安裝方式測試，正式依賴稽核需通過；全依賴稽核保留報告。正式機仍須檢查實際安裝結果、HTTPS 與備份。
