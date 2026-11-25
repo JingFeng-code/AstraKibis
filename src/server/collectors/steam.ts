@@ -1,5 +1,6 @@
 import type { Collector, RawItem } from "./types.ts";
 import { decodeEntities } from "../enrich/normalize.ts";
+import { config } from "../config.ts";
 
 function parseRows(html: string): { url: string; title: string; appId: string }[] {
   const out: { url: string; title: string; appId: string }[] = [];
@@ -25,7 +26,7 @@ export const steamCollector: Collector = {
     const count = Math.min(Number(ctx.config.count ?? 50), 100);
     const url =
       "https://store.steampowered.com/search/results/?query&start=0&count=" + count +
-      "&maxprice=free&specials=1&infinite=1&cc=us&l=schinese";
+      "&maxprice=free&specials=1&infinite=1&" + (config.sourceProfile === "taiwan" ? "cc=tw&l=tchinese" : "cc=us&l=schinese");
     ctx.log("GET " + url);
 
     const res = await ctx.http.json<{ total_count?: number; results_html?: string }>(url);
@@ -36,7 +37,7 @@ export const steamCollector: Collector = {
       externalId: r.appId,
       url: r.url,
       title: r.title,
-      summary: "Steam 限时免费（100% off）",
+      summary: "Steam 限時免費（100% off）",
       author: "Steam",
       publishedAt: null,
       imageUrl: /^\d+$/.test(r.appId)

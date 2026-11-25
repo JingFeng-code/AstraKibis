@@ -1,3 +1,4 @@
+import { FREE_TYPES, REGIONS, BILLING_RISKS, CARD_REQUIREMENTS } from "../../../shared/resource-quality.ts";
 import { applyChannelQuery } from "../../../shared/channel-query.ts";
 import { categoriesForPreset, isCategory, isContentKind, isObtainMode } from "../../../shared/taxonomy.ts";
 
@@ -14,14 +15,16 @@ export type FeedState = {
   obtain: string;
   kindFilter: string;
   unreadOnly: boolean;
+  freeType: string; regionHint: string; billingRisk: string; cardRequirement: string; resourceNature: string;
 };
 
 export const DEFAULT_FEED_STATE: FeedState = {
-  preset: "all", search: "", source: "", categories: [], lang: "all", sort: "newest",
+  preset: "all", search: "", source: "", categories: [], lang: "all", sort: "discovery",
   range: "auto", priceCap: "auto", minScore: "all", obtain: "auto", kindFilter: "auto", unreadOnly: false,
+  freeType: "all", regionHint: "all", billingRisk: "all", cardRequirement: "all", resourceNature: "all",
 };
 const PRESETS = new Set(["verified", "offline", "pan", "deal", "opensource", "news", "info", "codes", "urgent", "starred", "hidden", "review", "all"]);
-const FIELDS = { preset: "preset", search: "q", source: "source", lang: "filterLang", sort: "sort", range: "range", priceCap: "price", minScore: "score", obtain: "obtain", kindFilter: "kind" } as const;
+const FIELDS = { preset: "preset", search: "q", source: "source", lang: "filterLang", sort: "sort", range: "range", priceCap: "price", minScore: "score", obtain: "obtain", kindFilter: "kind", freeType: "freeType", regionHint: "regionHint", billingRisk: "billingRisk", cardRequirement: "cardRequirement", resourceNature: "resourceNature" } as const;
 const DAYS: Record<string, number> = { "1d": 1, "3d": 3, "7d": 7, "30d": 30 };
 const pick = (value: string | null, allowed: readonly string[], fallback: string) => value && allowed.includes(value) ? value : fallback;
 
@@ -36,13 +39,18 @@ export function readFeedState(search: string): FeedState {
     search: (p.get("q") ?? "").slice(0, 300), source: (p.get("source") ?? "").slice(0, 200),
     categories: [...new Set((p.get("category") ?? "").split(",").filter((v) => isCategory(v) && allowed.has(v)))],
     lang: pick(p.get("filterLang"), ["all", "zh", "en"], "all") as FeedState["lang"],
-    sort: pick(p.get("sort"), ["newest", "score", "oldest", "expiring", "price_asc"], "newest"),
+    sort: pick(p.get("sort"), ["newest", "discovery", "score", "oldest", "expiring", "price_asc"], "discovery"),
     range: pick(p.get("range"), ["auto", "all", "1d", "3d", "7d", "30d"], "auto"),
     priceCap: pick(p.get("price"), ["auto", "all", "free", "5", "10", "30", "100"], "auto"),
     minScore: pick(p.get("score"), ["all", "50", "60", "70"], "all"),
     obtain: obtain === "all" || isObtainMode(obtain) ? obtain : "auto",
     kindFilter: kind === "all" || isContentKind(kind) ? kind : "auto",
     unreadOnly: p.get("unread") === "1",
+    freeType: pick(p.get("freeType"), ["all", ...FREE_TYPES], "all"),
+    regionHint: pick(p.get("regionHint"), ["all", ...REGIONS], "all"),
+    billingRisk: pick(p.get("billingRisk"), ["all", ...BILLING_RISKS], "all"),
+    cardRequirement: pick(p.get("cardRequirement"), ["all", ...CARD_REQUIREMENTS], "all"),
+    resourceNature: pick(p.get("resourceNature"), ["all", "catalog", "update"], "all"),
   };
 }
 
@@ -63,6 +71,7 @@ export function writeFeedSearch(search: string, state: FeedState): string {
 
 export function buildFeedQuery(state: FeedState, now = Date.now()): string {
   const q: Record<string, string | undefined> = { preset: state.preset, sort: state.sort, limit: "100" };
+  for (const field of ["freeType", "regionHint", "billingRisk", "cardRequirement", "resourceNature"] as const) if (state[field] !== "all") q[field] = state[field];
   if (state.search.trim()) q.search = state.search.trim();
   if (state.source) q.source = state.source;
   if (state.categories.length) q.category = state.categories.join(",");
@@ -86,7 +95,7 @@ export function buildStatsQuery(query: string): string {
 }
 
 export function countAdditionalFilters(state: FeedState): number {
-  return [state.source, state.categories.length, state.lang !== "all", state.search.trim(), state.minScore !== "all", state.unreadOnly, state.kindFilter !== "auto", state.priceCap !== "auto", state.obtain !== "auto", state.range !== "auto", state.sort !== "newest"].filter(Boolean).length;
+  return [state.source, state.categories.length, state.lang !== "all", state.search.trim(), state.minScore !== "all", state.unreadOnly, state.kindFilter !== "auto", state.priceCap !== "auto", state.obtain !== "auto", state.range !== "auto", state.sort !== DEFAULT_FEED_STATE.sort, state.freeType !== "all", state.regionHint !== "all", state.billingRisk !== "all", state.cardRequirement !== "all", state.resourceNature !== "all"].filter(Boolean).length;
 }
 
 /** Describe actual enforced constraints, not a blanket claim that AI keep means free. */

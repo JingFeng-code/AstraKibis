@@ -12,3 +12,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/check
+
+  nodaroo-runtime:
+    if: github.repository == 'JingFeng-code/AstraKibis'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '25.9.0'
+      - name: Install with Nodaroo npm mode
+        run: npm install --include=dev --no-audit --no-fund
+      - name: Check patched direct dependencies
+        run: npm ls @hono/node-server fast-xml-parser
+      - name: Build and test Node 25
+        run: |
+          npm run build
+          npm test
+      - name: Chromium smoke
+        run: |
+          npx playwright install --with-deps chromium
+          node --no-warnings scripts/kibis-ui-smoke.mjs
+      - name: Audit npm production dependencies
+        run: npm audit --omit=dev --json
+      - name: Audit all npm dependencies (report only)
+        run: npm audit --json || true

@@ -73,21 +73,34 @@ test("existing SQLite profile applies once, retains data, and filters deferred s
     const hot = async () => {
       const response = await app.request("/api/hot?hours=24");
       assert.equal(response.status, 200);
-      return await response.json() as { scanned: number; prevScanned: number; rawScanned: number; words: { w: string }[]; top: { source_id: string }[]; topNews: { source_id: string }[] };
+      return await response.json() as { scanned: number; prevScanned: number; rawScanned: number; words: { w: string }[]; top: { source_id: string; title: string }[]; topNews: { source_id: string; title: string }[] };
     };
+    add("rss-freegroup", "kibis-region-excluded", "US residents only free trial", now, "freebie", 100);
+    add("github-free-for-dev", "kibis-catalog", "CatalogFixture long term list", now, "info", 100);
+    db.run("UPDATE items SET title='長期免費 VPS，台灣可申請，需綁卡，超額可能收費' WHERE external_id='kibis-taiwan-deal'");
+    const quality = await app.request("/api/items?preset=all&freeType=long_term&regionHint=taiwan_mentioned&billingRisk=possible_charge&cardRequirement=required");
+    assert.equal(quality.status,200);
+    const qualified = await quality.json() as {items: {external_id:string;resourceQuality:{verifiedAt:null}}[]};
+    assert.equal(qualified.items.length,1);
+    assert.equal(qualified.items[0]?.external_id,"kibis-taiwan-deal");
+    assert.equal(qualified.items[0]?.resourceQuality.verifiedAt,null);
+    assert.ok((await items("preset=all&resourceNature=catalog")).some(row=>row.external_id==="kibis-catalog"));
+    assert.ok(!(await items("preset=all&resourceNature=update")).some(row=>row.external_id==="kibis-catalog"));
     const report = await hot();
-    assert.equal(report.scanned, 3);
-    assert.equal(report.rawScanned, 3);
+    assert.equal(report.scanned, 4);
+    assert.equal(report.rawScanned, 4);
     assert.equal(report.prevScanned, 0);
-    assert.ok(report.words.some(w => w.w === "taiwanfixture"));
+    assert.ok(!report.words.some(w => w.w === "catalogfixture"));
     assert.ok(!report.words.some(w => w.w === "chinafixture"));
     assert.ok(report.top.some(i => i.source_id === "rss-freegroup"));
+    assert.ok(report.top.every(i => !i.title.includes("US residents only")));
     assert.ok(report.top.some(i => i.source_id === "kibis-custom-test"));
     assert.ok(report.topNews.some(i => i.source_id === "rss-tw-news-ithome"));
     assert.ok([...report.top, ...report.topNews].every(i => !["cctv-news", "bili-freebies", "rss-freebieshark"].includes(i.source_id)));
     for (const chosen of [pickDaily(), pickWeekly()]) {
       assert.ok(chosen.some(i => i.source_id === "rss-freegroup"));
-      assert.ok(chosen.every(i => !["cctv-news", "bili-freebies", "rss-freebieshark"].includes(i.source_id)));
+      assert.ok(chosen.every(i => !i.title.includes("US residents only")));
+      assert.ok(chosen.every(i => !["cctv-news", "bili-freebies", "rss-freebieshark", "github-free-for-dev"].includes(i.source_id)));
     }
     // The underlying historical item and its bookmark must remain accessible.
     assert.ok(db.get("SELECT id FROM items WHERE external_id='kibis-deferred-deal'"));

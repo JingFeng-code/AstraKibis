@@ -4553,6 +4553,9 @@ export const variants: Record<string, string> = {
   "齶": "顎"
 };
 export const localTerms: Record<string, string> = {
+  "免費類型": "免費類型",
+  "資訊類型": "資訊類型",
+  "免費類型未確認": "免費類型未確認",
   "资源雷达 · Resource Radar": "AstraKibis",
   "资源雷达": "AstraKibis",
   "资源雷达 · 多源聚合 · 浏览筛选与通知配置独立": "AstraKibis · 多來源彙整 · 瀏覽篩選與通知設定獨立",

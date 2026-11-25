@@ -25,8 +25,8 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "@hono/node-server": "^1.14.4",
-    "fast-xml-parser": "^4.5.3",
+    "@hono/node-server": "2.1.9",
+    "fast-xml-parser": "5.12.1",
     "hono": "^4.9.10",
     "lucide-react": "^0.545.0",
     "react": "^19.1.1",

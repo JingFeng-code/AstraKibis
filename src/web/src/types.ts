@@ -1,7 +1,10 @@
+import type { ResourceQuality } from "../../shared/resource-quality.ts";
 export type Item = {
   id: number;
   source_id: string;
   external_id: string;
+  resourceQuality?: ResourceQuality;
+  resourceNature?: "catalog" | "update";
   url: string;
   title: string;
   summary: string | null;
