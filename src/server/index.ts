@@ -29,12 +29,19 @@ migrate();
 ensureSources();
 if (config.sourceProfile === "taiwan" && applyTaiwanProfile()) console.log("[kibis] 已套用台灣資料來源設定（保留歷史資料與收藏）");
 const rerouted = reconcileFixedSourceCategories();
-if (rerouted) console.log(`[sources] 固定分类已重整 ${rerouted} 条历史资源（未触发 AI 或推送）`);
+if (rerouted) console.log(`[sources] 固定分類已重新整理 ${rerouted} 筆歷史資源（未觸發 AI 或推播）`);
 // 上次进程意外退出可能遗留 status='running' 的记录，启动时收口
 run(
-  "UPDATE runs SET status = 'failed', finished_at = ?, error = COALESCE(error, '进程重启中断') WHERE status = 'running'",
+  "UPDATE runs SET status = 'failed', finished_at = ?, error = COALESCE(error, '程序重新啟動而中斷') WHERE status = 'running'",
   new Date().toISOString(),
 );
+const cleanupLabels: Record<string, string> = {
+  "过期非福利条目": "過期非免費資源",
+  "过期福利条目": "過期免費資源",
+  "手动关闭的条目": "手動隱藏項目",
+  "推送日志": "推播日誌",
+  "每日精选": "每日精選",
+};
 const app = new Hono();
 registerSecurity(app);
 // JSON 接口动辄几十 KB，先压缩再发；/api/items?limit=100 从 75KB 降到 ~15KB
@@ -94,7 +101,7 @@ if (existsSync(webDistAbs)) {
     }),
   );
 } else {
-  app.get("/", (c) => c.text("freebie-radar API 已启动。前端未构建，运行 pnpm build 或 pnpm dev:web。"));
+  app.get("/", (c) => c.text("AstraKibis API 已啟動。尚未建置前端，請執行 pnpm build 或 pnpm dev:web。"));
 }
 
 if (config.enableScheduler) {
@@ -119,7 +126,7 @@ if (config.enableScheduler) {
       await runDaily({ date: now });
       // 每日精选落库后，给开了「个人日报」的用户各发一份
       await pushUserDaily().catch((err) => {
-        console.error("[user-push] 个人日报失败:", err instanceof Error ? err.message : err);
+        console.error("[user-push] 個人日報失敗：", err instanceof Error ? err.message : err);
       });
     },
   });
@@ -131,16 +138,16 @@ if (config.enableScheduler) {
       if (!cfg.auto) return;
       const r = runCleanup(cfg);
       const total = Object.values(r.deleted).reduce((a, b) => a + b, 0);
-      if (total > 0) console.log("[cleanup]", JSON.stringify(r.deleted), "剩余", r.remaining);
+      if (total > 0) console.log("[cleanup]", JSON.stringify(Object.fromEntries(Object.entries(r.deleted).map(([key, count]) => [cleanupLabels[key] ?? key, count]))), "剩餘", r.remaining);
     } catch (err) {
-      console.error("[cleanup] 失败:", err instanceof Error ? err.message : err);
+      console.error("[cleanup] 失敗：", err instanceof Error ? err.message : err);
     }
   };
   tickCleanup();
   // 过期的登录 Session 顺手清掉，避免 sessions 表无限增长
   try {
     const n = purgeExpiredSessions();
-    if (n > 0) console.log("[auth] 清理过期会话", n, "条");
+    if (n > 0) console.log("[auth] 清理過期工作階段", n, "筆");
   } catch {
     /* ignore */
   }
@@ -148,7 +155,7 @@ if (config.enableScheduler) {
 }
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {
-  console.log(`[radar] listening on http://${config.host}:${info.port}`);
+  console.log(`[AstraKibis] HTTP 服務已啟動：http://${config.host}:${info.port}`);
 });
 if (server instanceof HttpServer) {
   server.requestTimeout = 30_000;

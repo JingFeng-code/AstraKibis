@@ -31,7 +31,9 @@ export const TAIWAN_ENABLED_SOURCE_IDS = [
   "rss-tw-news-ithome",
   "rss-tw-news-technews",
   "rss-global-news-dotnet",
-  "rss-global-news-github"
+  "rss-global-news-github",
+  "rss-tw-news-briian",
+  "rss-global-news-github-changelog"
 ] as const;
 export const TAIWAN_DEFERRED_SOURCE_IDS = [
   "linuxdo-welfare",

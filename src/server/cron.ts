@@ -71,12 +71,12 @@ export function startIntervalScheduler(task: {
         try {
           await runSource(id);
         } catch (err) {
-          log(`[cron] ${id} 失败: ${err instanceof Error ? err.message : String(err)}`);
+          log(`[cron] ${id} 失敗： ${err instanceof Error ? err.message : String(err)}`);
         }
       }
       // Epic 自动领取：内部自带「间隔到了才跑」的闸门与并发锁，不阻塞采集主循环
     } catch (err) {
-      log(`[cron] 调度异常: ${err instanceof Error ? err.message : String(err)}`);
+      log(`[cron] 排程異常: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       busy = false;
     }
@@ -86,7 +86,7 @@ export function startIntervalScheduler(task: {
   const timer = setInterval(() => void tick(), tickMs);
   timer.unref?.();
   intervalTimer = timer;
-  log(`[cron] interval scheduler started (tick=${tickMs}ms)`);
+  log(`[cron] 各來源定時採集已啟動（檢查間隔 ${tickMs}ms）`);
 }
 
 let intervalTimer: NodeJS.Timeout | null = null;
@@ -107,15 +107,15 @@ export function startScheduler(task: { collect: () => Promise<unknown>; daily: (
     if (key === lastKey) return;
     lastKey = key;
     if (config.enableScheduler && matchCron(config.collectCron, now)) {
-      log("[cron] 触发采集");
-      task.collect().catch((e) => log(`[cron] 采集失败: ${String(e)}`));
+      log("[cron] 觸發採集");
+      task.collect().catch((e) => log(`[cron] 採集失敗: ${String(e)}`));
     }
     if (config.enableScheduler && matchCron(config.dailyCron, now)) {
-      log("[cron] 触发日报");
-      task.daily().catch((e) => log(`[cron] 日报失败: ${String(e)}`));
+      log("[cron] 觸發日報");
+      task.daily().catch((e) => log(`[cron] 日報失敗: ${String(e)}`));
     }
   }, 30_000);
-  log(`[cron] scheduler started collect="${config.collectCron}" daily="${config.dailyCron}"`);
+  log(`[cron] 排程已啟動 collect="${config.collectCron}" daily="${config.dailyCron}"`);
 }
 
 export function stopScheduler(): void {
