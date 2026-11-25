@@ -51,9 +51,11 @@ export function assessResource(title: string, summary: string | null | undefined
   }
   const region = mark(TW_EXCLUDED) || mark(RESTRICTED) ? "restricted_elsewhere" : !uncertain && mark(TW) ? "taiwan_mentioned" : "unknown";
   const cardNo = mark(CARD_NO);
-  const cardYes = mark(CARD_YES);
-  const card = cardNo ? (cardYes && !/no credit card required/i.test(text) ? "unknown" : "not_required_claim") : cardYes ? "required" : "unknown";
-  const noCharge = mark(BILLING_NO), charges = mark(BILLING_YES);
+  const cardYes = Boolean(match(text.replace(new RegExp(CARD_NO.source, "gi"), " "), CARD_YES));
+  if (cardYes) mark(CARD_YES);
+  const card = cardNo ? (cardYes ? "unknown" : "not_required_claim") : cardYes ? "required" : "unknown";
+  const noCharge = mark(BILLING_NO), charges = Boolean(match(text.replace(new RegExp(BILLING_NO.source, "gi"), " "), BILLING_YES));
+  if (charges) mark(BILLING_YES);
   // An explicit risk signal wins; a claimed spending cap is not a zero-cost guarantee.
   const billing = charges && !noCharge ? "possible_charge" : noCharge && !charges ? "no_charge_claim" : charges && noCharge ? "possible_charge" : "unknown";
   return { freeType, region, card, billing, evidenceStatus: evidence.length ? "text_hint" : "unknown", evidence: [...new Set(evidence)], verifiedAt: null };

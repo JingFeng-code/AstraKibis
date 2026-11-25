@@ -17,6 +17,7 @@ import {
 import { KIND_LABEL, OBTAIN_HINT, OBTAIN_LABEL, categoryLabelForKind, expiresLabel, extractBlockCandidates, timeAgo } from "../lib/sources.ts";
 import type { Item } from "../types.ts";
 import { ItemClassificationEditor, type ClassificationPatch } from "./ItemClassificationEditor.tsx";
+import { qualityLabel } from "../lib/resourceQuality.ts";
 import { t } from "../lib/i18n.ts";
 import { useNow } from "../lib/clock.ts";
 
@@ -55,15 +56,15 @@ export function CodeChip({ code, onCopy }: { code: string; onCopy: (code: string
 function PriceBadge({ item, inline = false }: { item: Item; inline?: boolean }) {
   if (item.is_free === 1 || item.price === 0) {
     return inline ? (
-      <span className="shrink-0 text-[12px] font-semibold text-deal">{t("免费")}</span>
+      <span className="shrink-0 text-[12px] font-semibold text-ink-600">{t("免費宣稱")}</span>
     ) : (
-      <span className="inline-flex items-center rounded bg-deal-subtle px-1.5 py-0.5 text-[11px] font-semibold text-deal">
-        {t("免费")}
+      <span className="inline-flex items-center rounded bg-ink-100 px-1.5 py-0.5 text-[11px] font-semibold text-ink-700">
+        {t("免費宣稱")}
       </span>
     );
   }
   if (typeof item.price === "number" && item.price > 0) {
-    const label = item.price < 1 ? t("<1 元") : t("{n} 元内", { n: Math.round(item.price) });
+    const label = item.price < 1 ? t("低於 1 人民幣估算") : t("{n} 人民幣估算", { n: Math.round(item.price * 100) / 100 });
     return inline ? (
       <span className="shrink-0 text-[12px] font-semibold text-accent">{label}</span>
     ) : (
@@ -73,6 +74,27 @@ function PriceBadge({ item, inline = false }: { item: Item; inline?: boolean }) 
     );
   }
   return null;
+}
+
+function QualityHints({item, detail = false}: {item: Item; detail?: boolean}) {
+  const q = item.resourceQuality;
+  if (!q) return null;
+  if (detail) return <section className="rounded-lg border border-ink-200 bg-canvas p-3 text-[12px] space-y-2">
+    <h3 className="font-semibold text-ink-950">{t("資源資格與費用線索")}</h3>
+    <p className="text-ink-600">{t(q.evidenceStatus === "unknown" ? "證據不足，尚未確認" : "原文線索，未核對官方條款")}</p>
+    <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+      {([["freeType",q.freeType],["regionHint",q.region],["billingRisk",q.billing],["cardRequirement",q.card]] as const).map(([field,value]) => <span key={field} className={value === "possible_charge" || value === "restricted_elsewhere" ? "text-alert font-medium" : "text-ink-700"}>{qualityLabel(field,value)}</span>)}
+    </div>
+    {q.evidence.length > 0 && <p className="text-ink-600">{t("原文證據")}：{q.evidence.join(" · ")}</p>}
+    <p className="text-ink-500">{t("已查證日期：尚未查證")}</p>
+    <a className="text-accent underline" href={item.url} target="_blank" rel="noreferrer">{t("原文")}</a>
+  </section>;
+  const chips: [string,string][] = [];
+  if(item.resourceNature === "catalog") chips.push(["resourceNature","catalog"]);
+  if(q.freeType !== "unknown") chips.push(["freeType",q.freeType]);
+  if(q.region !== "unknown") chips.push(["regionHint",q.region]);
+  if(q.billing === "possible_charge") chips.push(["billingRisk",q.billing]);
+  return <>{chips.map(([field,value]) => <span key={field} className={"rounded px-1.5 py-0.5 text-[11px] " + (value === "possible_charge" || value === "restricted_elsewhere" ? "bg-alert-subtle text-alert" : "bg-ink-100 text-ink-700")} title={t("原文線索，未核對官方條款")}>{qualityLabel(field,value)}</span>)}</>;
 }
 
 const OBTAIN_STYLE: Record<string, string> = {
@@ -251,6 +273,7 @@ export function CompactRow({
             <KindBadge kind={item.kind} category={item.category} inline />
             {showPrice && <PriceBadge item={item} inline />}
             {showPrice && <ObtainBadge obtain={item.obtain} inline />}
+            <QualityHints item={item} />
           </span>
           {matched.length > 0 && (
             <span className="rounded bg-code-subtle px-1.5 py-0.5 text-[11px] font-medium text-code">
@@ -462,6 +485,7 @@ export function ItemCard({
             )}
             <KindBadge kind={item.kind} category={item.category} />
             {item.kind !== "news" && item.kind !== "info" && <PriceBadge item={item} />}
+            <QualityHints item={item} />
             {item.kind !== "news" && item.kind !== "info" && <ObtainBadge obtain={item.obtain} />}
           </div>
           {!hasImage && (
@@ -746,6 +770,7 @@ export function ItemDetailDrawer({
           </div>
 
           <h2 className="text-[17px] leading-snug font-semibold text-ink-950">{item.title}</h2>
+          <QualityHints item={item} detail />
           {onClassificationSave && item.manualClassification !== undefined && !loading && !error && <ItemClassificationEditor key={item.id} item={item} onSave={onClassificationSave} />}
 
           {item.ai?.reason && (

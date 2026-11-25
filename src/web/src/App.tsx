@@ -44,6 +44,7 @@ import { ThemeSwitch } from "./components/ThemeSwitch.tsx";
 import { WorkspaceScopeBar } from "./components/WorkspaceScope.tsx";
 import { FeedViewSwitch } from "./components/FeedViewSwitch.tsx";
 import { FeedToolbar } from "./components/FeedToolbar.tsx";
+import { qualityFields, qualityLabels, qualityLabel } from "./lib/resourceQuality.ts";
 import { ActiveFilters, type FilterKey } from "./components/ActiveFilters.tsx";
 import { SourcePanel } from "./components/SourcePanel.tsx";
 import { ADMIN_AUTH_EVENT } from "./lib/auth.ts";
@@ -356,6 +357,7 @@ export function App() {
   const [sort, setSort] = useState(initialFeed.sort);
   const [range, setRange] = useState(initialFeed.range);
   const [priceCap, setPriceCap] = useState(initialFeed.priceCap);
+  const [quality, setQuality] = useState(() => ({ freeType: initialFeed.freeType, regionHint: initialFeed.regionHint, billingRisk: initialFeed.billingRisk, cardRequirement: initialFeed.cardRequirement, resourceNature: initialFeed.resourceNature }));
   const [minScore, setMinScore] = useState(initialFeed.minScore);
   const [obtain, setObtain] = useState(initialFeed.obtain);
   const [kindFilter, setKindFilter] = useState(initialFeed.kindFilter);
@@ -464,8 +466,8 @@ export function App() {
   }, [catOpen]);
 
   const feedState = useMemo<FeedState>(() => ({
-    preset, search: debounced, source, categories, lang, sort, range, priceCap, minScore, obtain, kindFilter, unreadOnly,
-  }), [preset, debounced, source, categories, lang, sort, range, priceCap, minScore, obtain, kindFilter, unreadOnly]);
+    preset, search: debounced, source, categories, lang, sort, range, priceCap, minScore, obtain, kindFilter, unreadOnly, ...quality,
+  }), [preset, debounced, source, categories, lang, sort, range, priceCap, minScore, obtain, kindFilter, unreadOnly, quality]);
   const query = useMemo(() => buildFeedQuery(feedState), [feedState]);
   const statsQuery = useMemo(() => buildStatsQuery(query), [query]);
   const policyLabels = useMemo(() => feedPolicyLabels(query), [query]);
@@ -501,6 +503,7 @@ export function App() {
     setObtain("auto");
     setRange("auto");
     setSort("newest");
+    setQuality({freeType:"all",regionHint:"all",billingRisk:"all",cardRequirement:"all",resourceNature:"all"});
   }, []);
   const removeFilter = useCallback((key: FilterKey, value?: string) => {
     if (key === "search") { setSearch(""); setDebounced(""); }
@@ -513,6 +516,7 @@ export function App() {
     else if (key === "score") setMinScore("all");
     else if (key === "kind") setKindFilter("auto");
     else if (key === "unread") setUnreadOnly(false);
+    else if (qualityFields.some(([field]) => field === key)) setQuality(old => ({ ...old, [key]: "all" }));
   }, []);
   const identityScope = `${me?.id ?? "guest"}:${adminReady}`;
   const stats = useApi<Stats>(statsQuery ? `/api/stats?${statsQuery}` : "/api/stats", identityScope);
@@ -566,6 +570,7 @@ export function App() {
     setCategories((current) => current.join(",") === next.categories.join(",") ? current : next.categories);
     setLang(next.lang); setSort(next.sort); setRange(next.range); setPriceCap(next.priceCap);
     setMinScore(next.minScore); setObtain(next.obtain); setKindFilter(next.kindFilter); setUnreadOnly(next.unreadOnly);
+    setQuality({ freeType: next.freeType, regionHint: next.regionHint, billingRisk: next.billingRisk, cardRequirement: next.cardRequirement, resourceNature: next.resourceNature });
   }, []);
   const overlayEpoch = useRef(0);
   const closeOverlays = useCallback(() => {
@@ -1349,6 +1354,7 @@ export function App() {
                   </select>}
 
                   {advancedFilters && <>
+                  {qualityFields.map(([field,label]) => <select key={field} aria-label={t(label)} title={t(label)} value={quality[field]} onChange={e => setQuality(old => ({...old,[field]:e.target.value}))} className="h-7 rounded-md border border-transparent bg-canvas px-2 text-[12px] font-medium text-ink-600 outline-none hover:bg-canvas-subtle focus:border-accent"><option value="all">{t(label)}：{t("全部")}</option>{Object.keys(qualityLabels[field] ?? {}).map(value => <option key={value} value={value}>{qualityLabel(field,value)}</option>)}</select>)}
                   {/* 语言筛选 */}
                   <select
                     value={lang}
@@ -1440,6 +1446,7 @@ export function App() {
                     title={t("排序方式")}
                   >
                     <option value="newest">{t("最新")}</option>
+                    <option value="discovery">{t("優先動態資訊")}</option>
                     <option value="score">{t("高分")}</option>
                     <option value="oldest">{t("最早")}</option>
                     <option value="expiring">{t("快截止")}</option>

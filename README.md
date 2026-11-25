@@ -62,3 +62,6 @@ pnpm build
 ## 授權與來源
 
 本專案衍生自 [ZiChuanLan/freebie-radar](https://github.com/ZiChuanLan/freebie-radar)，保留原 MIT 授權與著作權聲明（[LICENSE](LICENSE)）。繁中離線字典部分衍生自 OpenCC 1.1.9，依 [Apache-2.0](licenses/OpenCC-LICENSE.txt) 授權。資料來源與原始文章的權利屬於各自作者；本站僅提供索引與摘要，不保證內容或優惠有效。其他上游語言 README、舊截圖與技術文件屬歷史參考，未必反映 AstraKibis 現況。
+
+## 資源品質（v0.3 第一階段）
+規則式免費類型、地區／信用卡／收費風險線索及靜態清單篩選；文字線索不等同官方查證。見 [品質模型與驗收](docs/KIBIS_RESOURCE_QUALITY.md)。

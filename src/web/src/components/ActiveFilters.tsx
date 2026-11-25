@@ -1,9 +1,10 @@
 import { X } from "lucide-react";
 import type { FeedState } from "../lib/feedQuery.ts";
+import { qualityFields, qualityLabel } from "../lib/resourceQuality.ts";
 import { t } from "../lib/i18n.ts";
 import { KIND_LABEL, OBTAIN_LABEL } from "../../../shared/taxonomy.ts";
 
-export type FilterKey = "search" | "source" | "category" | "lang" | "price" | "obtain" | "range" | "score" | "kind" | "unread";
+export type FilterKey = "search" | "source" | "category" | "lang" | "price" | "obtain" | "range" | "score" | "kind" | "unread" | "freeType" | "regionHint" | "billingRisk" | "cardRequirement" | "resourceNature";
 
 type Chip = { key: FilterKey; value?: string; label: string; tone?: "accent" | "plain" };
 
@@ -22,6 +23,7 @@ export function activeFilterChips(
   if (state.range !== "auto") chips.push({ key: "range", label: t("时间：{v}", { v: state.range === "all" ? t("不限") : state.range === "1d" ? t("1 天内") : t("{n} 天内", { n: state.range.replace("d", "") }) }) });
   if (state.minScore !== "all") chips.push({ key: "score", label: t("评分：≥{n}", { n: state.minScore }) });
   if (state.unreadOnly) chips.push({ key: "unread", label: t("仅未读") });
+  for (const [key,label] of qualityFields) if (state[key] !== "all") chips.push({key,label: t(label) + "：" + qualityLabel(key,state[key])});
   return chips;
 }
 
